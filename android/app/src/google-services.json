@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "254518558778",
+    "project_id": "unicamp-78ff6",
+    "storage_bucket": "unicamp-78ff6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:254518558778:android:2053157f1f360255d03503",
+        "android_client_info": {
+          "package_name": "com.app.unicamp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "254518558778-1kisb2h54s9tk2ik5hq9s0pv1a1h19ll.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.app.unicamp",
+            "certificate_hash": "186c2c951e6378132688afca63b6847ee6ea03c6"
+          }
+        },
+        {
+          "client_id": "254518558778-s7v0i2v36sb9de8vip5ju303i6rtjm48.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNR62_srtf42oocjPCBrANCcdNT1Ma0Gk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "254518558778-s7v0i2v36sb9de8vip5ju303i6rtjm48.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "254518558778-g60acus5bhrbbcoe2eme2lje531bajv9.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.uniCamp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
