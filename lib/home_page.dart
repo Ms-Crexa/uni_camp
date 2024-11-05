@@ -76,10 +76,6 @@ class HomePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircleAvatar(
-              backgroundImage: NetworkImage(user?.photoURL ?? ''),
-              radius: 40,
-            ),
             const SizedBox(height: 10),
             Text('Welcome, ${user?.displayName ?? 'User'}!'),
             const SizedBox(height: 10),
