@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:uni_camp/src/components/information_row.dart';
 
 class LeftModal extends StatefulWidget {
   const LeftModal({
     super.key,
     required this.selectedPin,
     required this.children,
+    required this.search,
   });
 
+  final Widget search;
   final List<Widget> children;
   final Map<String, dynamic>? selectedPin;
 
@@ -21,12 +25,13 @@ class _LeftModalState extends State<LeftModal> {
       elevation: 0,
       color: Colors.transparent,
       child: Container(
+        width: 350,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: const BorderRadius.only(
-            topRight: Radius.circular(10),
-            bottomRight: Radius.circular(10),
-          ),
+          // borderRadius: const BorderRadius.only(
+          //   topRight: Radius.circular(10),
+          //   bottomRight: Radius.circular(10),
+          // ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.2),
@@ -36,10 +41,77 @@ class _LeftModalState extends State<LeftModal> {
             ),
           ],
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 15),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Stack(
+              children: [
+
+                // widget.selectedPin?['image'] != null && widget.selectedPin?['image'].isNotEmpty
+                //   ? FittedBox(
+                //       fit: BoxFit.fitWidth,
+                //       child: Image.asset('assets/images/bg.png'),
+                //     )
+                //   : const SizedBox(height: 30)
+                
+                FittedBox(
+                  fit: BoxFit.fitWidth,
+                  child: Image.asset('assets/images/bg.png',)
+                ),
+
+                Positioned(
+                  top: 15,
+                  left: 25,
+                  child: widget.search,
+                ),
+
+            ],
+          ),
+            
+            // Main content
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.selectedPin!["title"],
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(widget.selectedPin!["description"])
+                ],
+              ),
+            ),
+
+            const Divider(
+              thickness: 2,
+            ),
+
+            // Additional details
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  InformationRow(icon: FontAwesomeIcons.list, content: widget.selectedPin!["category"],),
+                  const SizedBox(height: 20),
+                  InformationRow(icon: FontAwesomeIcons.clock, content: widget.selectedPin!["open_hours"],),
+                  const SizedBox(height: 20),
+                  InformationRow(icon: FontAwesomeIcons.building, content: widget.selectedPin!["building"],),
+                  const SizedBox(height: 20),
+                  InformationRow(icon: FontAwesomeIcons.phone, content: widget.selectedPin!["contact_details"],),
+                ],
+              ),
+            ),
+
+            const Divider(
+              thickness: 2,
+            ),
+            
+            // Actions
             ...widget.children,
           ],
         ),
@@ -47,3 +119,4 @@ class _LeftModalState extends State<LeftModal> {
     );
   }
 }
+

@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class Search extends StatefulWidget {
-  const Search({super.key});
+  const Search({
+    super.key,
+    this.cancel
+  });
+
+  final Widget? cancel;
 
   @override
   State<Search> createState() => _SearchState();
@@ -11,7 +17,7 @@ class _SearchState extends State<Search> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 250,
+      width: 300,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(50),
         color: Colors.white,
@@ -38,13 +44,20 @@ class _SearchState extends State<Search> {
               ),
             ),
           ),
+          
           Padding(
-            padding: const EdgeInsets.only(right: 8),
+            padding: EdgeInsets.only(right: widget.cancel != null ? 0 : 8),
             child: IconButton(
-              icon: const Icon(Icons.search),
+              icon: const Icon(FontAwesomeIcons.magnifyingGlass, size: 16,),
               onPressed: () {},
             ),
           ),
+
+          if (widget.cancel != null) Padding(
+            padding: const EdgeInsets.only(right: 5),
+            child: widget.cancel!,
+          ),
+
         ],
       ),
     );

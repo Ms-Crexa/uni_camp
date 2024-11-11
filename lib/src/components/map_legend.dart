@@ -53,11 +53,10 @@ class MapLegend extends StatelessWidget {
   @override
 Widget build(BuildContext context) {
   return Positioned(
-    right: 10, 
+    right: 15, 
     top: 70,
-    child: Container(
-      width: 130, // Reduced width // Reduced height
-      padding: const EdgeInsets.all(8), // Reduced padding
+    child: SizedBox(
+      width: 130,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: legendItems.map((item) {
@@ -68,15 +67,14 @@ Widget build(BuildContext context) {
               backgroundColor: item['color'],
               radius: 8, // Reduced circle size
             ),
-            
             title: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 0), // Max width for text
+              constraints: const BoxConstraints(maxWidth: 0),
               child: Transform.translate(
-                offset: const Offset(0, 0), // Adjust text position
+                offset: const Offset(0, 0),
                 child: Text(
                   item['name'],
                   style: const TextStyle(
-                    fontSize: 10, // Reduced font size
+                    fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

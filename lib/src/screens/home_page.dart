@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:uni_camp/src/components/left_modal.dart';
 import 'package:uni_camp/src/components/map_legend.dart';
 import 'package:latlong2/latlong.dart';
@@ -25,13 +26,23 @@ class _HomePageState extends State<HomePage> {
   List<Map<String, dynamic>> markerData = [
     {
       "position": const LatLng(7.072033, 125.613094),
-      "title": "Pin 1",
-      "description": "This is the first pin."
+      "title": "Roxas Night Market Davao",
+      "description": "A lot of Food stalls when its night time.",
+      "contact_details": "09672009871",
+      "category": "Food",
+      "building": "Finster",
+      "image": "https://www.google.com",
+      "open_hours": "6:00 PM - 12:00 AM",
     },
     {
       "position": const LatLng(7.071500, 125.614000),
-      "title": "Pin 2",
-      "description": "This is the second pin."
+      "title": "Emergency Room",
+      "description": "Emergency Room.",
+      "contact_details": "09672009871",
+      "category": "Safety",
+      "building": "Community Center of the First Companions",
+      "image": "https://www.google.com",
+      "open_hours": "None",
     },
   ];
 
@@ -60,10 +71,11 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       floatingActionButton: FloatingActionButton.small(
+        backgroundColor: Colors.white,
         onPressed: () => setState(() {
           newLocation = !newLocation;
         }),
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add, color: Colors.black,),
       ),
       body: SizedBox(
       height: double.infinity,
@@ -126,20 +138,15 @@ class _HomePageState extends State<HomePage> {
               selectedPin != null ?
                 LeftModal(
                   selectedPin: selectedPin,
-                  children: [
-                    const SizedBox(height: 5,),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10),
-                      child: Search(),
-                    ),
-                    const SizedBox(height: 20,),
-                    Text(
-                      selectedPin!["title"],
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(selectedPin!["description"]),
-                  ]
+                  search: Search(
+                    cancel: selectedPin != null ? IconButton(
+                      icon: const Icon(FontAwesomeIcons.x, size: 15,),
+                      onPressed: () => setState(() {
+                        selectedPin = null;
+                      }),
+                    ) : null,
+                  ),
+                  children: const []
                 )
               :
                 const Padding(
