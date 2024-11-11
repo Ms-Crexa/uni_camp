@@ -5,11 +5,14 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:uni_camp/src/components/left_modal.dart';
 import 'package:uni_camp/src/components/map_legend.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:uni_camp/src/components/right_modal.dart';
 import 'package:uni_camp/src/components/search.dart';
 import 'package:uni_camp/src/components/top_bar.dart';
 import 'package:uni_camp/src/data/polygons_data.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:uni_camp/src/screens/signin_page.dart';
+import 'package:toastification/toastification.dart';
+// import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -22,6 +25,8 @@ class _HomePageState extends State<HomePage> {
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
   final LatLng initialPosition = const LatLng(7.072033, 125.613094);
   List<Polygon> polygons = getPolygons();
+
+  Map<String, dynamic>? temptData;
 
   List<Map<String, dynamic>> markerData = [
     {
@@ -47,6 +52,7 @@ class _HomePageState extends State<HomePage> {
   ];
 
   Map<String, dynamic>? selectedPin;
+  Map<String, dynamic>? savePin;
   bool newLocation = false;
 
   void _onMarkerTap(Map<String, dynamic> pinData) {
@@ -65,18 +71,39 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  LatLng selectedCoordinates = const LatLng(0, 0);
+  bool isSelecting = false;
+
+  void _onMapTapped(LatLng coordinates) {
+    setState(() {
+      selectedCoordinates = coordinates;
+      isSelecting = false;
+      newLocation = true;
+      selectedPin = savePin;
+      
+      toastification.show(
+        context: context,
+        title: const Text('Location Clicked!'),
+        style: ToastificationStyle.flatColored,
+        type: ToastificationType.success,
+        alignment: Alignment.topCenter,
+        autoCloseDuration: const Duration(seconds: 3),
+      );
+    });
+  }
+  
   @override
   Widget build(BuildContext context) {
     final User? user = firebaseAuth.currentUser;
     return Scaffold(
       extendBodyBehindAppBar: true,
-      floatingActionButton: FloatingActionButton.small(
+      floatingActionButton: !newLocation ? FloatingActionButton.small(
         backgroundColor: Colors.white,
         onPressed: () => setState(() {
           newLocation = !newLocation;
         }),
-        child: const Icon(Icons.add, color: Colors.black,),
-      ),
+        child: const Icon(Icons.add, color: Colors.black,)
+      ): null,
       body: SizedBox(
       height: double.infinity,
       width: double.infinity,
@@ -93,14 +120,20 @@ class _HomePageState extends State<HomePage> {
                   const LatLng(7.068990339917043, 125.6072999884711)
                 ),
               ),
+              onTap: isSelecting
+              ? (tapPosition, point) {
+                  _onMapTapped(point); // Call a method to handle both actions.
+                }
+              : null,
             ),
             children: [
               TileLayer(
+                // tileProvider: CancellableNetworkTileProvider(),
                 urlTemplate: "https://cartodb-basemaps-a.global.ssl.fastly.net/rastertiles/voyager_nolabels/{z}/{x}/{y}.png",
               ),
               PolygonLayer(polygons: polygons),
               MarkerLayer(
-                markers: markerData.map((data) {
+                markers: !isSelecting ? markerData.map((data) {
                   bool isSelected = selectedPin == data;
                   return Marker(
                     point: data["position"],
@@ -124,7 +157,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   );
-                }).toList(),
+                }).toList(): [],
               ),
             ],
           ),
@@ -186,6 +219,33 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
+          ),
+
+          if (newLocation) RightModal(
+            onCancel: () => setState(() {
+              temptData = null;
+              selectedCoordinates =  const LatLng(0, 0);
+              newLocation = false;
+            }),
+            onSelectPin: (data) => setState(() {
+              isSelecting = true;
+              newLocation = false;
+              savePin = selectedPin;
+              selectedPin = null;
+
+              temptData = data;
+              // toast, please select a location
+              toastification.show(
+                context: context,
+                title: const Text('Please click on a Location!'),
+                type: ToastificationType.info,
+                style: ToastificationStyle.flatColored,
+                alignment: Alignment.topCenter,
+                autoCloseDuration: const Duration(seconds: 5),
+              );
+            }),
+            selectedPin: selectedCoordinates,
+            temptData: temptData,
           ),
 
         ],
