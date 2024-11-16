@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:latlong2/latlong.dart';
@@ -283,40 +284,16 @@ class _RightModalState extends State<RightModal> {
                           TextButton(
                               onPressed: widget.onCancel,
                               child: const Text('Cancel')),
-                          // TextButton(
-                          //   onPressed: () {
-                          //     if (_formKey.currentState?.validate() ?? false) {
-                          //       print(
-                          //           'Facility Name: ${facilityNameController.text}');
-                          //       print(
-                          //           'Description: ${descriptionController.text}');
-                          //       print(
-                          //           'Open Hours: ${openHoursController.text}');
-                          //       print('Category: $selectedCategory');
-                          //       print('Building: $selectedBuilding');
-                          //       print('Image: $imageBytes');
-                          //       print(
-                          //           'Selected Pin: ${widget.selectedPin.latitude}, ${widget.selectedPin.longitude}');
-                          //     }
-                          //     toastification.show(
-                          //       // ignore: use_build_context_synchronously
-                          //       context: context,
-                          //       title:
-                          //           const Text('Facility Successfully Saved!'),
-                          //       style: ToastificationStyle.flatColored,
-                          //       type: ToastificationType.success,
-                          //       alignment: Alignment.topCenter,
-                          //       autoCloseDuration: const Duration(seconds: 3),
-                          //     );
-                          //     widget.onCancel();
-                          //   },
-                          //   child: const Text('Submit'),
-                          // ),
 
                           // store in firebase
                           TextButton(
                             onPressed: () async {
                               if (_formKey.currentState?.validate() ?? false) {
+                                // Get current user
+                                User? user = FirebaseAuth.instance.currentUser;
+                                String? userName =
+                                    user?.displayName ?? 'Unknown User';
+
                                 Map<String, dynamic> formData = {
                                   'facilityName': facilityNameController.text,
                                   'description': descriptionController.text,
@@ -328,6 +305,7 @@ class _RightModalState extends State<RightModal> {
                                     'longitude': widget.selectedPin.longitude,
                                   },
                                   'timestamp': FieldValue.serverTimestamp(),
+                                  'added by': userName,
                                 };
 
                                 if (imageBytes != null) {
