@@ -33,20 +33,31 @@ class SignInPage extends StatelessWidget {
       if (user != null) {
         final userDoc = await firestore.collection('users').doc(user.uid).get();
 
-        if (userDoc.exists) {
-          final role = userDoc['role'];
+        if (!userDoc.exists) {
+          // Save the user information in Firestore if they don't exist
+          await firestore.collection('users').doc(user.uid).set({
+            'email': user.email,
+            'displayName': user.displayName,
+            'photoURL': user.photoURL,
+            'role': 'student',
+          });
+        }
 
-          if (role == 'admin') {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const HomePage()),
-            );
-          } else {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const UnauthorizedPage()),
-            );
-          }
+        // Retrieve the user's role after saving their data
+        final updatedUserDoc =
+            await firestore.collection('users').doc(user.uid).get();
+        final role = updatedUserDoc['role'];
+
+        if (role == 'admin') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomePage()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const UnauthorizedPage()),
+          );
         }
       }
     } catch (error) {
@@ -74,8 +85,10 @@ class SignInPage extends StatelessWidget {
           if (snapshot.hasData) {
             final role = snapshot.data?['role'];
             if (role == 'admin') {
-              return const HomePage();
+              return HomePage();
             } else {
+              // Automatically log out if not an admin
+              firebaseAuth.signOut();
               return const UnauthorizedPage();
             }
           }
