@@ -50,94 +50,93 @@ class SignInPage extends StatelessWidget {
           ),
           Center(
             child: SizedBox(
-              height: 300,
-              width: 300,
+              height: MediaQuery.of(context).size.height,
+              width: MediaQuery.of(context).size.width,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Image.asset('assets/images/adduwhiteseal.png', height: 110,),
-                      const SizedBox(width: 10,),
-                      const Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('University', style: TextStyle(
-                            color: Color.fromARGB(255, 156, 156, 156),
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text('Campus', style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 35,
-                            fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text('Finder', style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 35,
-                            fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-
-                  // line, like hr
-                  Container(
-                    margin: const EdgeInsets.symmetric(vertical: 20),
-                    height: 1,
-                    width: 250,
-                    color: const Color.fromARGB(255, 93, 97, 133),
-                  ),
-
-                  const Text('Welcome back!', style: TextStyle(
-                    color: Color.fromARGB(255, 228, 228, 228),
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),),
-                  const Text('Login to', style: TextStyle(
-                    color: Color.fromARGB(255, 109, 109, 109),
-                    fontSize: 15,
-                    fontWeight: FontWeight.w400,
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Image.asset(
+                      'assets/images/adduwhiteseal.png',
+                      height: 240,
                     ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  ElevatedButton(
-                    onPressed: () => signInWithGoogle(context),
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.all(Colors.white),
-                      shape: WidgetStateProperty.all(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                      ),
-                      fixedSize: WidgetStateProperty.all(
-                        const Size(150, 40),
-                      ),
-                    ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    const SizedBox(width: 70),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Image(image: AssetImage('assets/images/google.png'), height: 25,),
-                        SizedBox(width: 10),
-                        Text('Google', style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 20,
-                        ),),
+                        const Text(
+                          "Welcome to",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 30,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                        const Text(
+                          "UniCamp",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 55,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          "The school's official unversity campus finder",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                        // line, like hr
+                        Container(
+                          margin: const EdgeInsets.symmetric(vertical: 20),
+                          height: 1,
+                          width: 310,
+                          color: const Color.fromARGB(255, 93, 97, 133),
+                        ),
+
+                        SizedBox(
+                          width: 310,
+                          child: ElevatedButton(
+                              onPressed: () => signInWithGoogle(context),
+                              style: ButtonStyle(
+                                backgroundColor:
+                                    WidgetStateProperty.all(Colors.white),
+                                shape: WidgetStateProperty.all(
+                                  RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                ),
+                                fixedSize: WidgetStateProperty.all(
+                                  const Size(150, 40),
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image(
+                                    image:
+                                        AssetImage('assets/images/google.png'),
+                                    height: 25,
+                                  ),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    'Log in with Google',
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                ],
+                              )),
+                        ),
                       ],
-                    )
-                  ),
+                    ),
+                  ]),
                 ],
               ),
             ),
