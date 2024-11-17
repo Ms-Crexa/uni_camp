@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:latlong2/latlong.dart';
@@ -43,7 +45,10 @@ class _RightModalState extends State<RightModal> {
 
   List<Map<String, String>> buildings = [
     {'value': 'Finster', 'label': 'Finster'},
-    {'value': 'Community Center of the First Companions', 'label': 'Community Center of the First Companions'},
+    {
+      'value': 'Community Center of the First Companions',
+      'label': 'Community Center of the First Companions'
+    },
     {'value': 'Jubilee Hall', 'label': 'Jubilee Hall'},
     {'value': 'Bellarmine Hall', 'label': 'Bellarmine Hall'},
     {'value': 'Wieman Hall', 'label': 'Wieman Hall'},
@@ -52,7 +57,10 @@ class _RightModalState extends State<RightModal> {
     {'value': 'Canasius Hall', 'label': 'Canasius Hall'},
     {'value': 'Thalibut Hall', 'label': 'Thalibut Hall'},
     {'value': 'Del Rosario Hall', 'label': 'Del Rosario Hall'},
-    {'value': 'Chapel of Our Lady of the Assumption', 'label': 'Chapel of Our Lady of the Assumption'},
+    {
+      'value': 'Chapel of Our Lady of the Assumption',
+      'label': 'Chapel of Our Lady of the Assumption'
+    },
   ];
 
   // if there is a temptData, set the values of the fields
@@ -105,14 +113,18 @@ class _RightModalState extends State<RightModal> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Padding(
-                  padding: EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 10),
-                  child: Text('New Facility', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  padding:
+                      EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 10),
+                  child: Text('New Facility',
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 ),
                 const Divider(thickness: 2),
                 Expanded(
                   child: SingleChildScrollView(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -155,7 +167,10 @@ class _RightModalState extends State<RightModal> {
                           const SizedBox(height: 10),
                           const Text(
                             'Category',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black54),
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black54),
                           ),
                           const SizedBox(height: 5),
                           DropdownButtonFormField<String>(
@@ -171,12 +186,17 @@ class _RightModalState extends State<RightModal> {
                                 selectedCategory = value;
                               });
                             },
-                            validator: (value) => value == null ? 'Please select a category' : null,
+                            validator: (value) => value == null
+                                ? 'Please select a category'
+                                : null,
                           ),
                           const SizedBox(height: 10),
                           const Text(
                             'Building',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black54),
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black54),
                           ),
                           const SizedBox(height: 5),
                           DropdownButtonFormField<String>(
@@ -192,7 +212,9 @@ class _RightModalState extends State<RightModal> {
                                 selectedBuilding = value;
                               });
                             },
-                            validator: (value) => value == null ? 'Please select a building' : null,
+                            validator: (value) => value == null
+                                ? 'Please select a building'
+                                : null,
                           ),
                           const SizedBox(height: 10),
                           TextButton(
@@ -208,7 +230,8 @@ class _RightModalState extends State<RightModal> {
                                 toastification.show(
                                   // ignore: use_build_context_synchronously
                                   context: context,
-                                  title: const Text('Image successfully uploaded!'),
+                                  title: const Text(
+                                      'Image successfully uploaded!'),
                                   style: ToastificationStyle.flatColored,
                                   type: ToastificationType.success,
                                   alignment: Alignment.topCenter,
@@ -242,7 +265,8 @@ class _RightModalState extends State<RightModal> {
                           ),
                           Padding(
                             padding: const EdgeInsets.only(left: 15),
-                            child: Text('Selected pin: ${widget.selectedPin.latitude}, ${widget.selectedPin.longitude}'),
+                            child: Text(
+                                'Selected pin: ${widget.selectedPin.latitude}, ${widget.selectedPin.longitude}'),
                           ),
                         ],
                       ),
@@ -253,31 +277,58 @@ class _RightModalState extends State<RightModal> {
                   children: [
                     const Divider(thickness: 2),
                     Padding(
-                      padding: const EdgeInsets.only(left: 20, right: 20, top: 5, bottom: 10),
+                      padding: const EdgeInsets.only(
+                          left: 20, right: 20, top: 5, bottom: 10),
                       child: Row(
                         children: [
-                          TextButton(onPressed: widget.onCancel, child: const Text('Cancel')),
                           TextButton(
-                            onPressed: () {
+                              onPressed: widget.onCancel,
+                              child: const Text('Cancel')),
+
+                          // store in firebase
+                          TextButton(
+                            onPressed: () async {
                               if (_formKey.currentState?.validate() ?? false) {
-                                print('Facility Name: ${facilityNameController.text}');
-                                print('Description: ${descriptionController.text}');
-                                print('Open Hours: ${openHoursController.text}');
-                                print('Category: $selectedCategory');
-                                print('Building: $selectedBuilding');
-                                print('Image: $imageBytes');
-                                print('Selected Pin: ${widget.selectedPin.latitude}, ${widget.selectedPin.longitude}');
-                              }
-                              toastification.show(
-                                  // ignore: use_build_context_synchronously
+                                // Get current user
+                                User? user = FirebaseAuth.instance.currentUser;
+                                String? userName =
+                                    user?.displayName ?? 'Unknown User';
+
+                                Map<String, dynamic> formData = {
+                                  'facilityName': facilityNameController.text,
+                                  'description': descriptionController.text,
+                                  'openHours': openHoursController.text,
+                                  'category': selectedCategory,
+                                  'building': selectedBuilding,
+                                  'selectedPin': {
+                                    'latitude': widget.selectedPin.latitude,
+                                    'longitude': widget.selectedPin.longitude,
+                                  },
+                                  'timestamp': FieldValue.serverTimestamp(),
+                                  'added by': userName,
+                                };
+
+                                if (imageBytes != null) {
+                                  formData['image'] = imageBytes;
+                                }
+
+                                // Save to Firestore
+                                await FirebaseFirestore.instance
+                                    .collection('facilities')
+                                    .add(formData);
+
+                                toastification.show(
                                   context: context,
-                                  title: const Text('Facility Successfully Saved!'),
+                                  title: const Text(
+                                      'Facility Successfully Saved!'),
                                   style: ToastificationStyle.flatColored,
                                   type: ToastificationType.success,
                                   alignment: Alignment.topCenter,
                                   autoCloseDuration: const Duration(seconds: 3),
                                 );
-                              widget.onCancel();
+
+                                widget.onCancel();
+                              }
                             },
                             child: const Text('Submit'),
                           ),
