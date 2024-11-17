@@ -168,60 +168,78 @@ class SignInPage extends StatelessWidget {
                           color: const Color.fromARGB(255, 93, 97, 133),
                         ),
 
-                        ValueListenableBuilder<bool>(
-                            valueListenable: isLoading,
-                            builder: (context, loading, child) {
-                              return loading
-                                  ? const CircularProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.white),
-                                    )
-                                  : SizedBox(
-                                      width: 260,
-                                      height: 40,
-                                      child: ElevatedButton(
-                                          onPressed: () =>
-                                              signInWithGoogle(context),
-                                          style: ButtonStyle(
-                                            backgroundColor:
-                                                WidgetStateProperty.all(
-                                                    const Color.fromARGB(
-                                                        255, 255, 255, 255)),
-                                            shape: WidgetStateProperty.all(
-                                              RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(5),
-                                              ),
-                                            ),
-                                            fixedSize: WidgetStateProperty.all(
-                                              const Size(150, 40),
-                                            ),
+                        SizedBox(
+                          width: 260,
+                          height: 40,
+                          child: Stack(
+                            children: [
+                              ElevatedButton(
+                                onPressed: () => signInWithGoogle(context),
+                                style: ButtonStyle(
+                                  backgroundColor: WidgetStateProperty.all(
+                                      const Color.fromARGB(255, 255, 255, 255)),
+                                  shape: WidgetStateProperty.all(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(5),
+                                    ),
+                                  ),
+                                  fixedSize: WidgetStateProperty.all(
+                                    const Size(260, 40),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Image(
+                                      image: AssetImage('assets/images/google.png'),
+                                      height: 20,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      'Sign-in with Google',
+                                      style: TextStyle(
+                                        color: const Color.fromARGB(255, 22, 22, 22),
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 20,
+                                        fontFamily: GoogleFonts.jost().fontFamily,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              
+                              // Overlay when isLoading is active
+                              ValueListenableBuilder<bool>(
+                                valueListenable: isLoading,
+                                builder: (context, loading, child) {
+                                  if (!loading) return const SizedBox.shrink();
+
+                                  return Container(
+                                    width: 260,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withOpacity(0.5),
+                                      borderRadius: BorderRadius.circular(5),
+                                    ),
+                                    child: const Center(
+                                      child: SizedBox(
+                                        width: 20, // Smaller size
+                                        height: 20, // Smaller size
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2, // Optional: Make the stroke thinner
+                                          valueColor: AlwaysStoppedAnimation<Color>(
+                                            Color.fromARGB(255, 255, 255, 255),
                                           ),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              const Image(
-                                                image: AssetImage(
-                                                    'assets/images/google.png'),
-                                                height: 20,
-                                              ),
-                                              const SizedBox(width: 10),
-                                              Text(
-                                                'Sign-in with Google',
-                                                style: TextStyle(
-                                                  color: const Color.fromARGB(
-                                                      255, 22, 22, 22),
-                                                  fontWeight: FontWeight.w600,
-                                                  fontSize: 20,
-                                                  fontFamily: GoogleFonts.jost()
-                                                      .fontFamily,
-                                                ),
-                                              ),
-                                            ],
-                                          )),
-                                    );
-                            }),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        
                       ],
                     ),
                   ]),
