@@ -132,23 +132,27 @@ class SignInPage extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           "Welcome to",
                           style: TextStyle(
-                            color: const Color.fromARGB(255, 153, 153, 153),
+                            color: Color.fromARGB(255, 153, 153, 153),
                             fontSize: 20,
-                            fontWeight: FontWeight.w500,
-                            fontFamily: GoogleFonts.leagueSpartan().fontFamily,
+                            fontFamily: 'LeagueSpartan',
+                            fontVariations: [
+                              FontVariation('wght', 300),
+                            ],
                           ),
                         ),
                         const SizedBox(height: 6),
-                        Text(
+                        const Text(
                           "UniCamp",
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 50,
-                            fontWeight: FontWeight.w900,
-                            fontFamily: GoogleFonts.leagueSpartan().fontFamily,
+                            fontFamily: 'LeagueSpartan',
+                            fontVariations: [
+                              FontVariation('wght', 900),
+                            ],
                           ),
                         ),
                         const SizedBox(height: 2),

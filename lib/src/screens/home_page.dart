@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:uni_camp/src/components/left_modal.dart';
-import 'package:uni_camp/src/components/map_legend.dart';
+// import 'package:uni_camp/src/components/map_legend.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:uni_camp/src/components/right_modal.dart';
 import 'package:uni_camp/src/components/search.dart';
-import 'package:uni_camp/src/components/top_bar.dart';
+// import 'package:uni_camp/src/components/top_bar.dart';
 import 'package:uni_camp/src/data/polygons_data.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:uni_camp/src/screens/signin_page.dart';
@@ -26,8 +26,25 @@ class _HomePageState extends State<HomePage> {
   final LatLng initialPosition = const LatLng(7.072033, 125.613094);
   List<Polygon> polygons = getPolygons();
 
+  // temporary form data for new location
   Map<String, dynamic>? temptData;
 
+  // the currently selected pin data (ito yung left modal)
+  Map<String, dynamic>? selectedPin;
+
+  // this is used to temporarily store the selected blue pin data if the user wants to add a new location
+  Map<String, dynamic>? savePin;
+
+  // right modal
+  bool newLocation = false;
+
+  // the coordinates of the new selected location
+  LatLng selectedCoordinates = const LatLng(0, 0);
+
+  // is selecting a new location, if true, the user can click on the map to select a new location
+  bool isSelecting = false;
+
+  // Markers
   List<Map<String, dynamic>> markerData = [
     {
       "position": const LatLng(7.072033, 125.613094),
@@ -51,10 +68,6 @@ class _HomePageState extends State<HomePage> {
     },
   ];
 
-  Map<String, dynamic>? selectedPin;
-  Map<String, dynamic>? savePin;
-  bool newLocation = false;
-
   void _onMarkerTap(Map<String, dynamic> pinData) {
     setState(() {
       selectedPin = pinData;
@@ -70,9 +83,6 @@ class _HomePageState extends State<HomePage> {
       MaterialPageRoute(builder: (context) => SignInPage()),
     );
   }
-
-  LatLng selectedCoordinates = const LatLng(0, 0);
-  bool isSelecting = false;
 
   void _onMapTapped(LatLng coordinates) {
     setState(() {
@@ -91,7 +101,7 @@ class _HomePageState extends State<HomePage> {
       );
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final User? user = firebaseAuth.currentUser;
@@ -133,36 +143,56 @@ class _HomePageState extends State<HomePage> {
               ),
               PolygonLayer(polygons: polygons),
               MarkerLayer(
-                markers: !isSelecting ? markerData.map((data) {
-                  bool isSelected = selectedPin == data;
-                  return Marker(
-                    point: data["position"],
-                    width: 60,
-                    height: 60,
-                    child: GestureDetector(
-                      onTap: () => _onMarkerTap(data),
-                      child: AnimatedScale(
-                        scale: isSelected ? 1.1 : 1.0,
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeInOut,
-                        child: Transform.scale(
-                          scale: isSelected ? 1.1 : 1.0,
-                          alignment: Alignment.bottomCenter,
-                          child: Icon(
-                            Icons.location_pin,
-                            color: isSelected ? Colors.blue : Colors.red, 
-                            size: 40,
+                markers: !isSelecting
+                    ? [
+                        ...markerData.map((data) {
+                          bool isSelected = selectedPin == data;
+                          return Marker(
+                            point: data["position"],
+                            width: 60,
+                            height: 60,
+                            child: GestureDetector(
+                              onTap: () => _onMarkerTap(data),
+                              child: AnimatedScale(
+                                scale: isSelected ? 1.1 : 1.0,
+                                duration: const Duration(milliseconds: 200),
+                                curve: Curves.easeInOut,
+                                child: Transform.scale(
+                                  scale: isSelected ? 1.1 : 1.0,
+                                  alignment: Alignment.bottomCenter,
+                                  child: Icon(
+                                    Icons.location_pin,
+                                    color: isSelected ? Colors.blue : Colors.red,
+                                    size: 40,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                        // Add selectedCoordinates if it exists
+                        Marker(
+                          point: selectedCoordinates,
+                          width: 100,
+                          height: 60,
+                          child: const Column(
+                            children: [
+                              Text('Selected Pin', style: TextStyle(color: Colors.green, fontWeight: FontWeight.w100),),
+                              Icon(
+                                Icons.location_pin,
+                                color: Colors.green,
+                                size: 40,
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                    ),
-                  );
-                }).toList(): [],
+                      ]
+                    : [],
               ),
             ],
           ),
 
-          MapLegend(),
+          // MapLegend(),
 
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -187,7 +217,7 @@ class _HomePageState extends State<HomePage> {
                   child: Search(),
                 ),
               const SizedBox(width: 5,),
-              const TopBar(children: [Text('Sample', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w500),)])
+              // const TopBar(children: [Text('Sample', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w500),)])
             ],
           ),
 

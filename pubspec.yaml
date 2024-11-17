@@ -44,3 +44,17 @@ flutter:
     # Add assets from the images directory to the application.
     - assets/images/
     - assets/appainter_theme.json
+
+  fonts:
+    - family: LeagueSpartan
+      fonts:
+        - asset: assets/fonts/LeagueSpartan-VariableFont_wght.ttf
+          weight: 100  # Thin
+        - asset: assets/fonts/LeagueSpartan-VariableFont_wght.ttf
+          weight: 600  # Semi-Bold
+        - asset: assets/fonts/LeagueSpartan-VariableFont_wght.ttf
+          weight: 700  # Bold
+        - asset: assets/fonts/LeagueSpartan-VariableFont_wght.ttf
+          weight: 800  # Extra Bold
+        - asset: assets/fonts/LeagueSpartan-VariableFont_wght.ttf
+          weight: 900  # Black (Heaviest)
