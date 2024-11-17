@@ -4,6 +4,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'home_page.dart';
 import 'unauthorized_page.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SignInPage extends StatelessWidget {
   final GoogleSignIn googleSignIn = GoogleSignIn();
@@ -121,50 +122,53 @@ class SignInPage extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        'assets/images/adduwhiteseal.png',
-                        height: 240,
-                      ),
-                      const SizedBox(width: 70),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "Welcome to",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 30,
-                              fontWeight: FontWeight.normal,
-                            ),
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Image.asset(
+                      'assets/images/LOGOMARK.png',
+                      height: 330,
+                    ),
+                    const SizedBox(width: 20),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Welcome to",
+                          style: TextStyle(
+                            color: const Color.fromARGB(255, 153, 153, 153),
+                            fontSize: 20,
+                            fontWeight: FontWeight.w500,
+                            fontFamily: GoogleFonts.leagueSpartan().fontFamily,
                           ),
-                          const Text(
-                            "UniCamp",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 55,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          "UniCamp",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 50,
+                            fontWeight: FontWeight.w900,
+                            fontFamily: GoogleFonts.leagueSpartan().fontFamily,
                           ),
-                          const SizedBox(height: 10),
-                          const Text(
-                            "The school's official university campus finder",
-                            style: TextStyle(
-                              color: Colors.white,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          "AdDU’s Official University Campus Finder",
+                          style: TextStyle(
+                              color: const Color.fromARGB(255, 153, 153, 153),
                               fontSize: 15,
-                              fontWeight: FontWeight.normal,
-                            ),
-                          ),
-                          Container(
-                            margin: const EdgeInsets.symmetric(vertical: 20),
-                            height: 1,
-                            width: 310,
-                            color: const Color.fromARGB(255, 93, 97, 133),
-                          ),
-                          ValueListenableBuilder<bool>(
+                              fontWeight: FontWeight.w600,
+                              fontFamily: GoogleFonts.jost().fontFamily),
+                        ),
+                        // line, like hr
+                        Container(
+                          margin: const EdgeInsets.symmetric(vertical: 10),
+                          height: 1,
+                          width: 260,
+                          color: const Color.fromARGB(255, 93, 97, 133),
+                        ),
+
+                        ValueListenableBuilder<bool>(
                             valueListenable: isLoading,
                             builder: (context, loading, child) {
                               return loading
@@ -173,46 +177,54 @@ class SignInPage extends StatelessWidget {
                                           Colors.white),
                                     )
                                   : SizedBox(
-                                      width: 300,
+                                      width: 260,
+                                      height: 40,
                                       child: ElevatedButton(
-                                        onPressed: () =>
-                                            signInWithGoogle(context),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.white,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(5),
-                                          ),
-                                          fixedSize: const Size(150, 40),
-                                        ),
-                                        child: const Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Image(
-                                              image: AssetImage(
-                                                  'assets/images/google.png'),
-                                              height: 25,
-                                            ),
-                                            SizedBox(width: 10),
-                                            Text(
-                                              'Log in with Google',
-                                              style: TextStyle(
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 20,
+                                          onPressed: () =>
+                                              signInWithGoogle(context),
+                                          style: ButtonStyle(
+                                            backgroundColor:
+                                                WidgetStateProperty.all(
+                                                    const Color.fromARGB(
+                                                        255, 255, 255, 255)),
+                                            shape: WidgetStateProperty.all(
+                                              RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(5),
                                               ),
                                             ),
-                                          ],
-                                        ),
-                                      ),
+                                            fixedSize: WidgetStateProperty.all(
+                                              const Size(150, 40),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              const Image(
+                                                image: AssetImage(
+                                                    'assets/images/google.png'),
+                                                height: 20,
+                                              ),
+                                              const SizedBox(width: 10),
+                                              Text(
+                                                'Sign-in with Google',
+                                                style: TextStyle(
+                                                  color: const Color.fromARGB(
+                                                      255, 22, 22, 22),
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 20,
+                                                  fontFamily: GoogleFonts.jost()
+                                                      .fontFamily,
+                                                ),
+                                              ),
+                                            ],
+                                          )),
                                     );
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                            }),
+                      ],
+                    ),
+                  ]),
                 ],
               ),
             ),
