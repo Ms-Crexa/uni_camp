@@ -46,28 +46,27 @@ class _LeftModalState extends State<LeftModal> {
           children: [
             Stack(
               children: [
-
                 // widget.selectedPin?['image'] != null && widget.selectedPin?['image'].isNotEmpty
                 //   ? FittedBox(
                 //       fit: BoxFit.fitWidth,
                 //       child: Image.asset('assets/images/bg.png'),
                 //     )
                 //   : const SizedBox(height: 30)
-                
+
                 FittedBox(
-                  fit: BoxFit.fitWidth,
-                  child: Image.asset('assets/images/bg.png',)
-                ),
+                    fit: BoxFit.fitWidth,
+                    child: Image.asset(
+                      'assets/images/bg.png',
+                    )),
 
                 Positioned(
                   top: 15,
                   left: 25,
                   child: widget.search,
                 ),
+              ],
+            ),
 
-            ],
-          ),
-            
             // Main content
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
@@ -76,11 +75,13 @@ class _LeftModalState extends State<LeftModal> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.selectedPin!["title"],
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    widget.selectedPin?["facilityName"] ?? 'No Name Available',
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  Text(widget.selectedPin!["description"])
+                  Text(widget.selectedPin?["description"] ??
+                      'No description available')
                 ],
               ),
             ),
@@ -96,13 +97,34 @@ class _LeftModalState extends State<LeftModal> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  InformationRow(icon: FontAwesomeIcons.list, content: widget.selectedPin!["category"],),
+                  InformationRow(
+                    icon: FontAwesomeIcons.list,
+                    content: widget.selectedPin?["category"] ?? 'No category',
+                  ),
                   const SizedBox(height: 20),
-                  InformationRow(icon: FontAwesomeIcons.clock, content: widget.selectedPin!["open_hours"],),
+                  InformationRow(
+                    icon: FontAwesomeIcons.clock,
+                    content: widget.selectedPin?["openHours"] ??
+                        'No hours available',
+                  ),
                   const SizedBox(height: 20),
-                  InformationRow(icon: FontAwesomeIcons.building, content: widget.selectedPin!["building"],),
+                  InformationRow(
+                    icon: FontAwesomeIcons.building,
+                    content: widget.selectedPin?["building"] ??
+                        'No building information',
+                  ),
                   const SizedBox(height: 20),
-                  InformationRow(icon: FontAwesomeIcons.phone, content: widget.selectedPin!["contact_details"],),
+                  InformationRow(
+                    icon: FontAwesomeIcons.envelope,
+                    content: widget.selectedPin?["email"] ??
+                        'No contact details available',
+                  ),
+                  const SizedBox(height: 20),
+                  InformationRow(
+                    icon: FontAwesomeIcons.phone,
+                    content: widget.selectedPin?["number"] ??
+                        'No contact details available',
+                  ),
                 ],
               ),
             ),
@@ -110,7 +132,7 @@ class _LeftModalState extends State<LeftModal> {
             const Divider(
               thickness: 2,
             ),
-            
+
             // Actions
             ...widget.children,
           ],
@@ -119,4 +141,3 @@ class _LeftModalState extends State<LeftModal> {
     );
   }
 }
-

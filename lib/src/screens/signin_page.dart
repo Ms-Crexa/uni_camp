@@ -86,7 +86,7 @@ class SignInPage extends StatelessWidget {
           if (snapshot.hasData) {
             final role = snapshot.data?['role'];
             if (role == 'admin') {
-              return HomePage();
+              return const HomePage();
             } else {
               // Automatically log out if not an admin
               firebaseAuth.signOut();
@@ -195,23 +195,26 @@ class SignInPage extends StatelessWidget {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     const Image(
-                                      image: AssetImage('assets/images/google.png'),
+                                      image: AssetImage(
+                                          'assets/images/google.png'),
                                       height: 20,
                                     ),
                                     const SizedBox(width: 10),
                                     Text(
                                       'Sign-in with Google',
                                       style: TextStyle(
-                                        color: const Color.fromARGB(255, 22, 22, 22),
+                                        color: const Color.fromARGB(
+                                            255, 22, 22, 22),
                                         fontWeight: FontWeight.w600,
                                         fontSize: 20,
-                                        fontFamily: GoogleFonts.jost().fontFamily,
+                                        fontFamily:
+                                            GoogleFonts.jost().fontFamily,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                              
+
                               // Overlay when isLoading is active
                               ValueListenableBuilder<bool>(
                                 valueListenable: isLoading,
@@ -230,8 +233,10 @@ class SignInPage extends StatelessWidget {
                                         width: 20, // Smaller size
                                         height: 20, // Smaller size
                                         child: CircularProgressIndicator(
-                                          strokeWidth: 2, // Optional: Make the stroke thinner
-                                          valueColor: AlwaysStoppedAnimation<Color>(
+                                          strokeWidth:
+                                              2, // Optional: Make the stroke thinner
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
                                             Color.fromARGB(255, 255, 255, 255),
                                           ),
                                         ),
@@ -243,7 +248,6 @@ class SignInPage extends StatelessWidget {
                             ],
                           ),
                         ),
-                        
                       ],
                     ),
                   ]),
