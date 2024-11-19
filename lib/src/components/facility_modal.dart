@@ -50,7 +50,10 @@ class _FacilityModal extends State<FacilityModal> {
                 //     )
                 //   : const SizedBox(height: 30)
 
-                Image.network(widget.selectedPin?['image'], fit: BoxFit.cover, height: double.infinity,),
+                Image.network(
+                  widget.selectedPin?['image'] ?? 'https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL', 
+                  fit: BoxFit.cover,
+                  height: double.infinity,),
 
                 // Positioned(
                 //   top: 15,
@@ -67,18 +70,19 @@ class _FacilityModal extends State<FacilityModal> {
           // Main content
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.selectedPin!["title"],
-                  style: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-                Text(widget.selectedPin!["description"])
-              ],
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.selectedPin?["facilityName"] ?? 'No Name Available',
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(widget.selectedPin?["description"] ??
+                      'No description available')
+                ],
             ),
           ),
     
@@ -93,26 +97,35 @@ class _FacilityModal extends State<FacilityModal> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                InformationRow(
-                  icon: FontAwesomeIcons.list,
-                  content: widget.selectedPin!["category"],
-                ),
-                const SizedBox(height: 20),
-                InformationRow(
-                  icon: FontAwesomeIcons.clock,
-                  content: widget.selectedPin!["open_hours"],
-                ),
-                const SizedBox(height: 20),
-                InformationRow(
-                  icon: FontAwesomeIcons.building,
-                  content: widget.selectedPin!["building"],
-                ),
-                const SizedBox(height: 20),
-                InformationRow(
-                  icon: FontAwesomeIcons.phone,
-                  content: widget.selectedPin!["contact_details"],
-                ),
-              ],
+                  InformationRow(
+                    icon: FontAwesomeIcons.list,
+                    content: widget.selectedPin?["category"] ?? 'No category',
+                  ),
+                  const SizedBox(height: 20),
+                  InformationRow(
+                    icon: FontAwesomeIcons.clock,
+                    content: widget.selectedPin?["openHours"] ??
+                        'No hours available',
+                  ),
+                  const SizedBox(height: 20),
+                  InformationRow(
+                    icon: FontAwesomeIcons.building,
+                    content: widget.selectedPin?["building"] ??
+                        'No building information',
+                  ),
+                  const SizedBox(height: 20),
+                  InformationRow(
+                    icon: FontAwesomeIcons.envelope,
+                    content: widget.selectedPin?["email"] ??
+                        'No contact details available',
+                  ),
+                  const SizedBox(height: 20),
+                  InformationRow(
+                    icon: FontAwesomeIcons.phone,
+                    content: widget.selectedPin?["number"] ??
+                        'No contact details available',
+                  ),
+                ],
             ),
           ),
     

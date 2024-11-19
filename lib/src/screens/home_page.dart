@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -52,80 +53,53 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   String searchInput = '';
 
   // Markers
-  List<Map<String, dynamic>> markerData = [
-    // Existing markers
-    {
-      "position": const LatLng(7.072033, 125.613094),
-      "title": "Roxas Night Market Davao",
-      "description": "A lot of Food stalls when its night time.",
-      "contact_details": "09672009871",
-      "category": "Food",
-      "building": "Finster",
-      "image": "https://picsum.photos/890/320?random=1", // Random image from Lorem Picsum
-      "open_hours": "6:00 PM - 12:00 AM",
-    },
-    {
-      "position": const LatLng(7.071500, 125.614000),
-      "title": "Emergency Room",
-      "description": "Emergency Room.",
-      "contact_details": "09672009871",
-      "category": "Safety",
-      "building": "Community Center of the First Companions",
-      "image": "https://picsum.photos/890/320?random=2", // Random image from Lorem Picsum
-      "open_hours": "None",
-    },
-    // New markers with random images
-    {
-      "position": const LatLng(7.073000, 125.609500),
-      "title": "Café Davao",
-      "description": "A cozy café to enjoy local coffee.",
-      "contact_details": "09671012345",
-      "category": "Food",
-      "building": "Roxas Café Building",
-      "image": "https://picsum.photos/890/320?random=3", // Random image from Lorem Picsum
-      "open_hours": "8:00 AM - 10:00 PM",
-    },
-    {
-      "position": const LatLng(7.072700, 125.610800),
-      "title": "Tech Hub",
-      "description": "A place for tech enthusiasts and innovators.",
-      "contact_details": "09671023456",
-      "category": "Work",
-      "building": "Innovation Center",
-      "image": "https://picsum.photos/890/320?random=4", // Random image from Lorem Picsum
-      "open_hours": "9:00 AM - 6:00 PM",
-    },
-    {
-      "position": const LatLng(7.070800, 125.608200),
-      "title": "Health Clinic",
-      "description": "A local health clinic offering basic medical services.",
-      "contact_details": "09671034567",
-      "category": "Health",
-      "building": "Community Health Center",
-      "image": "https://picsum.photos/890/320?random=5", // Random image from Lorem Picsum
-      "open_hours": "8:00 AM - 5:00 PM",
-    },
-    {
-      "position": const LatLng(7.071200, 125.616500),
-      "title": "Art Gallery",
-      "description": "Local art gallery showcasing student work.",
-      "contact_details": "09671045678",
-      "category": "Art",
-      "building": "Roxas Art Center",
-      "image": "https://picsum.photos/890/320?random=6", // Random image from Lorem Picsum
-      "open_hours": "10:00 AM - 7:00 PM",
-    },
-    {
-      "position": const LatLng(7.073500, 125.617000),
-      "title": "Library",
-      "description": "A quiet library for studying and reading.",
-      "contact_details": "09671056789",
-      "category": "Study",
-      "building": "Roxas Library",
-      "image": "https://picsum.photos/890/320?random=7", // Random image from Lorem Picsum
-      "open_hours": "8:00 AM - 9:00 PM",
-    },
-  ];
+  List<Map<String, dynamic>> markerData = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchMarkerData();
+  }
+
+  Future<void> fetchMarkerData() async {
+    try {
+      final querySnapshot =
+          await FirebaseFirestore.instance.collection('facilities').get();
+      final List<Map<String, dynamic>> fetchedData =
+          querySnapshot.docs.map((doc) {
+        final data = doc.data();
+        final selectedPin = data['selectedPin'];
+        final contactDetails = data['contactDetails'] ?? {};
+
+        final latitude = selectedPin != null && selectedPin['latitude'] != null
+            ? selectedPin['latitude']
+            : 0.0;
+        final longitude =
+            selectedPin != null && selectedPin['longitude'] != null
+                ? selectedPin['longitude']
+                : 0.0;
+
+        return {
+          "position": LatLng(latitude, longitude),
+          "added_by": data['added by'] ?? "Unknown",
+          "building": data['building'] ?? "Unknown",
+          "category": data['category'] ?? "Unknown",
+          "description": data['description'] ?? "No description available",
+          "facilityName": data['facilityName'] ?? "Unknown",
+          "email": contactDetails['email'] ?? "no contacts available",
+          "number": contactDetails['number'] ?? "no contacts available",
+          "openHours": data['openHours'] ?? "Not specified",
+          "timestamp": data['timestamp'] ?? "No timestamp available",
+        };
+      }).toList();
+
+      setState(() {
+        markerData = fetchedData;
+      });
+    } catch (error) {
+      print("Error fetching marker data: $error");
+    }
+  }
 
   void _onMarkerTap(Map<String, dynamic> pinData) {
     setState(() {

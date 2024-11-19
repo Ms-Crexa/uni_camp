@@ -5,7 +5,7 @@ class LeftModal extends StatefulWidget {
 
   final List<Map<String, dynamic>> facilities;
   final Function setFacility;
-  final searchQuery;
+  final String searchQuery;
 
   @override
   State<LeftModal> createState() => _LeftModalState();
@@ -15,7 +15,7 @@ class _LeftModalState extends State<LeftModal> {
 
   // Filter the facilities based on the search query
   List<Map<String, dynamic>> get filteredFacilities {
-    if (widget.searchQuery == null || widget.searchQuery.isEmpty) {
+    if (widget.searchQuery != '' || widget.searchQuery.isEmpty) {
       return widget.facilities;
     }
 
