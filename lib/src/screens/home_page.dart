@@ -62,7 +62,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           querySnapshot.docs.map((doc) {
         final data = doc.data();
         final selectedPin = data['selectedPin'];
-        final contactDetails = data['contactDetails'] ?? {};
+        final contactDetails = data['contact_details'] ?? {};
 
         // final latitude = selectedPin != null && selectedPin['latitude'] != null
         //     ? selectedPin['latitude']
@@ -75,7 +75,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         final double latitude;
         final double longitude;
 
-        if (selectedPin != null && selectedPin['latitude'] != null && selectedPin['longitude'] != null) {
+        if (selectedPin != null &&
+            selectedPin['latitude'] != null &&
+            selectedPin['longitude'] != null) {
           latitude = selectedPin['latitude'];
           longitude = selectedPin['longitude'];
         } else if (data['position'] != null && data['position'] is GeoPoint) {
@@ -88,16 +90,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         }
 
         final position = LatLng(latitude, longitude);
-        
+
         return {
           "position": position,
           "added_by": data['added by'] ?? "Unknown",
           "building": data['building'] ?? "Unknown",
           "category": data['category'] ?? "Unknown",
           "description": data['description'] ?? "No description available",
-          "facilityName": data['facilityName'] ?? data['name'] ?? 'Unknown',
-          "email": contactDetails['email'] ?? "no contacts available",
-          "number": contactDetails['number'] ?? "no contacts available",
+          "name": data['name'] ?? 'Unknown',
+          "email": contactDetails['contact_email'] ?? "no contacts available",
+          "number": contactDetails['contact_number'] ?? "no contacts available",
           "openHours": data['openHours'] ?? "Not specified",
           "timestamp": data['timestamp'] ?? "No timestamp available",
         };
@@ -134,7 +136,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       newLocation = true;
       selectedPin = savePin;
       showAllFacilities = true;
-      
+
       toastification.show(
         context: context,
         title: const Text('Location Clicked!'),
@@ -151,219 +153,223 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     final User? user = firebaseAuth.currentUser;
     return Scaffold(
       extendBodyBehindAppBar: true,
-      floatingActionButton: !newLocation ? FloatingActionButton.small(
-        backgroundColor: Colors.white,
-        onPressed: () => setState(() {
-          newLocation = !newLocation;
-        }),
-        child: const Icon(Icons.add, color: Colors.black,)
-      ): null,
+      floatingActionButton: !newLocation
+          ? FloatingActionButton.small(
+              backgroundColor: Colors.white,
+              onPressed: () => setState(() {
+                    newLocation = !newLocation;
+                  }),
+              child: const Icon(
+                Icons.add,
+                color: Colors.black,
+              ))
+          : null,
       body: SizedBox(
-      height: double.infinity,
-      width: double.infinity,
-      child: Stack(
-        children: [
-
-          FlutterMap(
-            options: MapOptions(
-              initialCenter: initialPosition,
-              initialZoom: 18.0,
-              cameraConstraint: CameraConstraint.contain(bounds:
-                LatLngBounds(
-                  const LatLng(7.074980053311773, 125.61920470410469),
-                  const LatLng(7.068990339917043, 125.6072999884711)
+        height: double.infinity,
+        width: double.infinity,
+        child: Stack(
+          children: [
+            FlutterMap(
+              options: MapOptions(
+                initialCenter: initialPosition,
+                initialZoom: 18.0,
+                cameraConstraint: CameraConstraint.contain(
+                  bounds: LatLngBounds(
+                      const LatLng(7.074980053311773, 125.61920470410469),
+                      const LatLng(7.068990339917043, 125.6072999884711)),
                 ),
+                onTap: isSelecting
+                    ? (tapPosition, point) {
+                        _onMapTapped(point);
+                      }
+                    : (tapPosition, point) {
+                        setState(() {
+                          selectedPin = null;
+                        });
+                        if (selectedPin != null) {
+                          setState(() {
+                            selectedPin = null;
+                          });
+                        } else if (searchInput == '') {
+                          setState(() {
+                            showAllFacilities = false;
+                          });
+                        }
+                      },
               ),
-              onTap: isSelecting
-              ? (tapPosition, point) {
-                  _onMapTapped(point);
-                }
-              : (tapPosition, point) {
-                setState(() {
-                  selectedPin = null;
-                });
-                if (selectedPin != null) {
-                  setState(() {
-                    selectedPin = null;
-                  });
-                }else if (searchInput == '') {
-                  setState(() {
-                    showAllFacilities = false;
-                  });
-                }
-              },
-            ),
-            mapController: _animatedMapController.mapController,
-            children: [
-              TileLayer(
-                tileProvider: CancellableNetworkTileProvider(),
-                urlTemplate: "https://cartodb-basemaps-a.global.ssl.fastly.net/rastertiles/voyager_nolabels/{z}/{x}/{y}.png",
-              ),
-              PolygonLayer(polygons: polygons),
-              MarkerLayer(
-                markers: !isSelecting
-                    ? [
-                        ...markerData.map((data) {
-                          bool isSelected = selectedPin == data;
-                          return Marker(
-                            point: data["position"],
-                            width: 60,
-                            height: 60,
-                            child: GestureDetector(
-                              onTap: () => _onMarkerTap(data),
-                              child: AnimatedScale(
-                                scale: isSelected ? 1.1 : 1.0,
-                                duration: const Duration(milliseconds: 200),
-                                curve: Curves.easeInOut,
-                                child: Transform.scale(
+              mapController: _animatedMapController.mapController,
+              children: [
+                TileLayer(
+                  tileProvider: CancellableNetworkTileProvider(),
+                  urlTemplate:
+                      "https://cartodb-basemaps-a.global.ssl.fastly.net/rastertiles/voyager_nolabels/{z}/{x}/{y}.png",
+                ),
+                PolygonLayer(polygons: polygons),
+                MarkerLayer(
+                  markers: !isSelecting
+                      ? [
+                          ...markerData.map((data) {
+                            bool isSelected = selectedPin == data;
+                            return Marker(
+                              point: data["position"],
+                              width: 60,
+                              height: 60,
+                              child: GestureDetector(
+                                onTap: () => _onMarkerTap(data),
+                                child: AnimatedScale(
                                   scale: isSelected ? 1.1 : 1.0,
-                                  alignment: Alignment.bottomCenter,
-                                  child: Icon(
-                                    Icons.location_pin,
-                                    color: isSelected ? Colors.blue : Colors.red,
-                                    size: 40,
+                                  duration: const Duration(milliseconds: 200),
+                                  curve: Curves.easeInOut,
+                                  child: Transform.scale(
+                                    scale: isSelected ? 1.1 : 1.0,
+                                    alignment: Alignment.bottomCenter,
+                                    child: Icon(
+                                      Icons.location_pin,
+                                      color:
+                                          isSelected ? Colors.blue : Colors.red,
+                                      size: 40,
+                                    ),
                                   ),
                                 ),
                               ),
+                            );
+                          }),
+                          // Add selectedCoordinates if it exists
+                          Marker(
+                            point: selectedCoordinates,
+                            width: 100,
+                            height: 60,
+                            child: const Column(
+                              children: [
+                                Text(
+                                  'Selected Pin',
+                                  style: TextStyle(
+                                      color: Colors.green,
+                                      fontWeight: FontWeight.w100),
+                                ),
+                                Icon(
+                                  Icons.location_pin,
+                                  color: Colors.green,
+                                  size: 40,
+                                ),
+                              ],
                             ),
-                          );
-                        }),
-                        // Add selectedCoordinates if it exists
-                        Marker(
-                          point: selectedCoordinates,
-                          width: 100,
-                          height: 60,
-                          child: const Column(
-                            children: [
-                              Text('Selected Pin', style: TextStyle(color: Colors.green, fontWeight: FontWeight.w100),),
-                              Icon(
-                                Icons.location_pin,
-                                color: Colors.green,
-                                size: 40,
-                              ),
-                            ],
                           ),
-                        ),
-                      ]
-                    : [],
-              ),
-            ],
-          ),
-
-          MapLegend(),
-
-          Positioned(
-            left: 0,
-            top: 0,
-            bottom: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-
-                showAllFacilities ? LeftModal(
-                  facilities: markerData,
-                  searchQuery: searchInput,
-                  searchController: _searchController,
-                  setFacility: (data) => setState(() {
-                    selectedPin = data;
-                    searchInput = '';
-                    showAllFacilities = false;
-                    _animatedMapController.animateTo(dest: data['position'], zoom: 19.0);
-                  }),
-                ) : const SizedBox.shrink(),
-
-                selectedPin != null
-                  ? FacilityModal(
-                      selectedPin: selectedPin,
-                      children: const [],
-                    )
-                  : const SizedBox.shrink(),
-
-              ],
-            ),
-          ),
-
-          Positioned(
-            top: 10,
-            right: 10,
-            child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text('${user?.displayName}'),
-                    const SizedBox(width: 10),
-                    SizedBox(
-                      height: 40,
-                      width: 40,
-                      child: CircleAvatar(
-                        backgroundImage: NetworkImage(user?.photoURL ?? ''),
-                        radius: 40,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    IconButton(
-                      icon: const Icon(Icons.logout),
-                      onPressed: () => signOut(context),
-                    ),
-                  ],
+                        ]
+                      : [],
                 ),
               ],
             ),
-          ),
-
-          if (newLocation) RightModal(
-            onCancel: () => setState(() {
-              temptData = null;
-              selectedCoordinates =  const LatLng(0, 0);
-              newLocation = false;
-            }),
-            onSelectPin: (data) => setState(() {
-              isSelecting = true;
-              newLocation = false;
-              showAllFacilities = false;
-              savePin = selectedPin;
-              selectedPin = null;
-
-              temptData = data;
-              // toast, please select a location
-              toastification.show(
-                context: context,
-                title: const Text('Please click on a Location!'),
-                type: ToastificationType.info,
-                style: ToastificationStyle.flatColored,
-                alignment: Alignment.topCenter,
-                autoCloseDuration: const Duration(seconds: 5),
-              );
-            }),
-            selectedPin: selectedCoordinates,
-            temptData: temptData,
-          ),
-
-          Positioned(
-            top: 10,
-            left: 15,
-            child: Search(
-              searchController: _searchController,
-              gotTapped: () {
-                setState(() {
-                  showAllFacilities = true;
-                });
-              },
-              onChanged: (value) {
-                setState(() {
-                  showAllFacilities = true;
-                  searchInput = value;
-                });
-              },
+            MapLegend(),
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  showAllFacilities
+                      ? LeftModal(
+                          facilities: markerData,
+                          searchQuery: searchInput,
+                          searchController: _searchController,
+                          setFacility: (data) => setState(() {
+                            selectedPin = data;
+                            searchInput = '';
+                            showAllFacilities = false;
+                            _animatedMapController.animateTo(
+                                dest: data['position'], zoom: 19.0);
+                          }),
+                        )
+                      : const SizedBox.shrink(),
+                  selectedPin != null
+                      ? FacilityModal(
+                          selectedPin: selectedPin,
+                          children: const [],
+                        )
+                      : const SizedBox.shrink(),
+                ],
+              ),
             ),
-          )
+            Positioned(
+              top: 10,
+              right: 10,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text('${user?.displayName}'),
+                      const SizedBox(width: 10),
+                      SizedBox(
+                        height: 40,
+                        width: 40,
+                        child: CircleAvatar(
+                          backgroundImage: NetworkImage(user?.photoURL ?? ''),
+                          radius: 40,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      IconButton(
+                        icon: const Icon(Icons.logout),
+                        onPressed: () => signOut(context),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            if (newLocation)
+              RightModal(
+                onCancel: () => setState(() {
+                  temptData = null;
+                  selectedCoordinates = const LatLng(0, 0);
+                  newLocation = false;
+                }),
+                onSelectPin: (data) => setState(() {
+                  isSelecting = true;
+                  newLocation = false;
+                  showAllFacilities = false;
+                  savePin = selectedPin;
+                  selectedPin = null;
 
-        ],
+                  temptData = data;
+                  // toast, please select a location
+                  toastification.show(
+                    context: context,
+                    title: const Text('Please click on a Location!'),
+                    type: ToastificationType.info,
+                    style: ToastificationStyle.flatColored,
+                    alignment: Alignment.topCenter,
+                    autoCloseDuration: const Duration(seconds: 5),
+                  );
+                }),
+                selectedPin: selectedCoordinates,
+                temptData: temptData,
+              ),
+            Positioned(
+              top: 10,
+              left: 15,
+              child: Search(
+                searchController: _searchController,
+                gotTapped: () {
+                  setState(() {
+                    showAllFacilities = true;
+                  });
+                },
+                onChanged: (value) {
+                  setState(() {
+                    showAllFacilities = true;
+                    searchInput = value;
+                  });
+                },
+              ),
+            )
+          ],
+        ),
       ),
-    ),
     );
   }
 }
