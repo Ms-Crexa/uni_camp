@@ -86,7 +86,7 @@ class SignInPage extends StatelessWidget {
           if (snapshot.hasData) {
             final role = snapshot.data?['role'];
             if (role == 'admin') {
-              return HomePage();
+              return const HomePage();
             } else {
               // Automatically log out if not an admin
               firebaseAuth.signOut();

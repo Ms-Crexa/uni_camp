@@ -1,18 +1,18 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:uni_camp/src/components/left_modal.dart';
+import 'package:uni_camp/src/components/facility_modal.dart';
 // import 'package:uni_camp/src/components/map_legend.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:uni_camp/src/components/left_modal.dart';
 import 'package:uni_camp/src/components/right_modal.dart';
 import 'package:uni_camp/src/components/search.dart';
-// import 'package:uni_camp/src/components/top_bar.dart';
 import 'package:uni_camp/src/data/polygons_data.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:uni_camp/src/screens/signin_page.dart';
 import 'package:toastification/toastification.dart';
-// import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
+import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
+import 'package:flutter_map_animations/flutter_map_animations.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,9 +21,10 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
   final LatLng initialPosition = const LatLng(7.072033, 125.613094);
+  late final _animatedMapController = AnimatedMapController(vsync: this);
   List<Polygon> polygons = getPolygons();
 
   // temporary form data for new location
@@ -44,8 +45,15 @@ class _HomePageState extends State<HomePage> {
   // is selecting a new location, if true, the user can click on the map to select a new location
   bool isSelecting = false;
 
+  // show all facilities
+  bool showAllFacilities = false;
+
+  // searchInput
+  String searchInput = '';
+
   // Markers
   List<Map<String, dynamic>> markerData = [
+    // Existing markers
     {
       "position": const LatLng(7.072033, 125.613094),
       "title": "Roxas Night Market Davao",
@@ -53,7 +61,7 @@ class _HomePageState extends State<HomePage> {
       "contact_details": "09672009871",
       "category": "Food",
       "building": "Finster",
-      "image": "https://www.google.com",
+      "image": "https://picsum.photos/890/320?random=1", // Random image from Lorem Picsum
       "open_hours": "6:00 PM - 12:00 AM",
     },
     {
@@ -63,8 +71,59 @@ class _HomePageState extends State<HomePage> {
       "contact_details": "09672009871",
       "category": "Safety",
       "building": "Community Center of the First Companions",
-      "image": "https://www.google.com",
+      "image": "https://picsum.photos/890/320?random=2", // Random image from Lorem Picsum
       "open_hours": "None",
+    },
+    // New markers with random images
+    {
+      "position": const LatLng(7.073000, 125.609500),
+      "title": "Café Davao",
+      "description": "A cozy café to enjoy local coffee.",
+      "contact_details": "09671012345",
+      "category": "Food",
+      "building": "Roxas Café Building",
+      "image": "https://picsum.photos/890/320?random=3", // Random image from Lorem Picsum
+      "open_hours": "8:00 AM - 10:00 PM",
+    },
+    {
+      "position": const LatLng(7.072700, 125.610800),
+      "title": "Tech Hub",
+      "description": "A place for tech enthusiasts and innovators.",
+      "contact_details": "09671023456",
+      "category": "Work",
+      "building": "Innovation Center",
+      "image": "https://picsum.photos/890/320?random=4", // Random image from Lorem Picsum
+      "open_hours": "9:00 AM - 6:00 PM",
+    },
+    {
+      "position": const LatLng(7.070800, 125.608200),
+      "title": "Health Clinic",
+      "description": "A local health clinic offering basic medical services.",
+      "contact_details": "09671034567",
+      "category": "Health",
+      "building": "Community Health Center",
+      "image": "https://picsum.photos/890/320?random=5", // Random image from Lorem Picsum
+      "open_hours": "8:00 AM - 5:00 PM",
+    },
+    {
+      "position": const LatLng(7.071200, 125.616500),
+      "title": "Art Gallery",
+      "description": "Local art gallery showcasing student work.",
+      "contact_details": "09671045678",
+      "category": "Art",
+      "building": "Roxas Art Center",
+      "image": "https://picsum.photos/890/320?random=6", // Random image from Lorem Picsum
+      "open_hours": "10:00 AM - 7:00 PM",
+    },
+    {
+      "position": const LatLng(7.073500, 125.617000),
+      "title": "Library",
+      "description": "A quiet library for studying and reading.",
+      "contact_details": "09671056789",
+      "category": "Study",
+      "building": "Roxas Library",
+      "image": "https://picsum.photos/890/320?random=7", // Random image from Lorem Picsum
+      "open_hours": "8:00 AM - 9:00 PM",
     },
   ];
 
@@ -90,6 +149,7 @@ class _HomePageState extends State<HomePage> {
       isSelecting = false;
       newLocation = true;
       selectedPin = savePin;
+      showAllFacilities = true;
       
       toastification.show(
         context: context,
@@ -132,13 +192,29 @@ class _HomePageState extends State<HomePage> {
               ),
               onTap: isSelecting
               ? (tapPosition, point) {
-                  _onMapTapped(point); // Call a method to handle both actions.
+                  _onMapTapped(point);
                 }
-              : null,
+              : (tapPosition, point) {
+                setState(() {
+                  selectedPin = null;
+                });
+                if (selectedPin != null) {
+                  setState(() {
+                    selectedPin = null;
+                  });
+                }else if (searchInput.isEmpty) {
+                  setState(() {
+                    showAllFacilities = false;
+                  });
+                }else{
+
+                }
+              },
             ),
+            mapController: _animatedMapController.mapController,
             children: [
               TileLayer(
-                // tileProvider: CancellableNetworkTileProvider(),
+                tileProvider: CancellableNetworkTileProvider(),
                 urlTemplate: "https://cartodb-basemaps-a.global.ssl.fastly.net/rastertiles/voyager_nolabels/{z}/{x}/{y}.png",
               ),
               PolygonLayer(polygons: polygons),
@@ -194,31 +270,35 @@ class _HomePageState extends State<HomePage> {
 
           // MapLegend(),
 
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              selectedPin != null ?
-                LeftModal(
-                  selectedPin: selectedPin,
-                  search: Search(
-                    cancel: selectedPin != null ? IconButton(
-                      icon: const Icon(FontAwesomeIcons.x, size: 15,),
-                      onPressed: () => setState(() {
-                        selectedPin = null;
-                      }),
-                    ) : null,
-                  ),
-                  children: const []
-                )
-              :
-                const Padding(
-                  padding: EdgeInsets.only(top: 15, left: 15),
-                  child: Search(),
-                ),
-              const SizedBox(width: 5,),
-              // const TopBar(children: [Text('Sample', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w500),)])
-            ],
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+
+                showAllFacilities ? LeftModal(
+                  facilities: markerData,
+                  searchQuery: searchInput,
+                  setFacility: (data) => setState(() {
+                    selectedPin = data;
+                    searchInput = '';
+                    showAllFacilities = false;
+                    _animatedMapController.animateTo(dest: data['position'], zoom: 19.0);
+                  }),
+                ) : const SizedBox.shrink(),
+
+                selectedPin != null
+                  ? FacilityModal(
+                      selectedPin: selectedPin,
+                      children: const [],
+                    )
+                  : const SizedBox.shrink(),
+
+              ],
+            ),
           ),
 
           Positioned(
@@ -260,6 +340,7 @@ class _HomePageState extends State<HomePage> {
             onSelectPin: (data) => setState(() {
               isSelecting = true;
               newLocation = false;
+              showAllFacilities = false;
               savePin = selectedPin;
               selectedPin = null;
 
@@ -277,6 +358,19 @@ class _HomePageState extends State<HomePage> {
             selectedPin: selectedCoordinates,
             temptData: temptData,
           ),
+
+          Positioned(
+            top: 10,
+            left: 15,
+            child: Search(
+              onChanged: (value) {
+                setState(() {
+                  showAllFacilities = true;
+                  searchInput = value;
+                });
+              },
+            ),
+          )
 
         ],
       ),
