@@ -15,12 +15,12 @@ class _LeftModalState extends State<LeftModal> {
 
   // Filter the facilities based on the search query
   List<Map<String, dynamic>> get filteredFacilities {
-    if (widget.searchQuery != '' || widget.searchQuery.isEmpty) {
+    if (widget.searchQuery.isEmpty) {
       return widget.facilities;
     }
 
     return widget.facilities.where((facility) {
-      final title = facility['title']?.toLowerCase() ?? '';
+      final title = facility['facilityName']?.toLowerCase() ?? '';
       final description = facility['description']?.toLowerCase() ?? '';
       final searchQuery = widget.searchQuery.toLowerCase();
 
@@ -50,26 +50,30 @@ class _LeftModalState extends State<LeftModal> {
           Container(height: 65, color: Colors.transparent,),
 
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-              child: ListView.builder(
-                itemCount: filteredFacilities.length,
-                itemBuilder: (context, index) {
-                  final facility = filteredFacilities[index];
-                  return Container(
-                    decoration: BoxDecoration(
-                      border: Border.symmetric(
-                        horizontal: BorderSide(
-                          color: Colors.grey.withOpacity(0.5),
-                          width: 0.5,
-                        ),
-                      )
+            child: filteredFacilities.isEmpty
+                ? const Center(
+                    child: Text(
+                      'No results',
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
                     ),
-                    child: FacilityCard(widget: widget, facility: facility)
-                  );
-                },
-              ),
-            ),
+                  )
+                : ListView.builder(
+                  itemCount: filteredFacilities.length,
+                  itemBuilder: (context, index) {
+                    final facility = filteredFacilities[index];
+                    return Container(
+                      decoration: BoxDecoration(
+                        border: Border.symmetric(
+                          horizontal: BorderSide(
+                            color: Colors.grey.withOpacity(0.5),
+                            width: 0.5,
+                          ),
+                        ),
+                      ),
+                      child: FacilityCard(widget: widget, facility: facility),
+                    );
+                  },
+                ),
           ),
 
         ],
@@ -103,10 +107,11 @@ class FacilityCard extends StatelessWidget {
       ),
       child: Row(
         children: [
+
           // Image section
           Container(
-            width: 100, // Adjust size for the image
-            height: 100, // Adjust size for the image
+            width: 100,
+            height: 100,
             decoration: BoxDecoration(
               image: DecorationImage(
                 image: NetworkImage(facility['image'] ?? 'https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL'), // Default image URL
@@ -125,17 +130,17 @@ class FacilityCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    facility['title'] ?? 'No Title', // Handle null case for title
+                    facility['facilityName'] ?? 'No Title',
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black, // Text color for title
+                      color: Colors.black,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    facility['description'] ?? 'No description available', // Handle null case for description
-                    style: const TextStyle(fontSize: 12, color: Colors.black), // Adjust the text color for description
+                    facility['description'] ?? 'No description available',
+                    style: const TextStyle(fontSize: 12, color: Colors.black),
                   ),
                 ],
               ),

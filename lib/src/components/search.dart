@@ -5,9 +5,11 @@ class Search extends StatefulWidget {
   const Search({
     super.key,
     required this.onChanged,
+    required this.gotTapped,
   });
 
   final ValueChanged<String> onChanged;
+  final VoidCallback gotTapped;
 
   @override
   State<Search> createState() => _SearchState();
@@ -52,6 +54,7 @@ class _SearchState extends State<Search> {
                     widget.onChanged(_controller.text);
                   });
                 },
+                onTap: widget.gotTapped,
                 decoration: const InputDecoration(
                   hintText: 'Search...',
                   isDense: true,
@@ -60,7 +63,7 @@ class _SearchState extends State<Search> {
               ),
             ),
           ),
-
+    
           // Display the "X" button when there is text in the TextField
           if (_controller.text.isNotEmpty) 
             IconButton(
@@ -70,7 +73,7 @@ class _SearchState extends State<Search> {
                 widget.onChanged('');
               },
             ),
-
+    
           // Search icon with a border
           Container(
             decoration: BoxDecoration(

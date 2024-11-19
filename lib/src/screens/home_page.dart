@@ -30,28 +30,20 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   // temporary form data for new location
   Map<String, dynamic>? temptData;
-
   // the currently selected pin data (ito yung left modal)
   Map<String, dynamic>? selectedPin;
-
   // this is used to temporarily store the selected blue pin data if the user wants to add a new location
   Map<String, dynamic>? savePin;
-
   // right modal
   bool newLocation = false;
-
   // the coordinates of the new selected location
   LatLng selectedCoordinates = const LatLng(0, 0);
-
   // is selecting a new location, if true, the user can click on the map to select a new location
   bool isSelecting = false;
-
   // show all facilities
   bool showAllFacilities = false;
-
   // searchInput
   String searchInput = '';
-
   // Markers
   List<Map<String, dynamic>> markerData = [];
 
@@ -71,21 +63,38 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         final selectedPin = data['selectedPin'];
         final contactDetails = data['contactDetails'] ?? {};
 
-        final latitude = selectedPin != null && selectedPin['latitude'] != null
-            ? selectedPin['latitude']
-            : 0.0;
-        final longitude =
-            selectedPin != null && selectedPin['longitude'] != null
-                ? selectedPin['longitude']
-                : 0.0;
+        // final latitude = selectedPin != null && selectedPin['latitude'] != null
+        //     ? selectedPin['latitude']
+        //     : 0.0;
+        // final longitude =
+        //     selectedPin != null && selectedPin['longitude'] != null
+        //         ? selectedPin['longitude']
+        //         : 0.0;
 
+        final double latitude;
+        final double longitude;
+
+        if (selectedPin != null && selectedPin['latitude'] != null && selectedPin['longitude'] != null) {
+          latitude = selectedPin['latitude'];
+          longitude = selectedPin['longitude'];
+        } else if (data['position'] != null && data['position'] is GeoPoint) {
+          final geoPoint = data['position'] as GeoPoint;
+          latitude = geoPoint.latitude;
+          longitude = geoPoint.longitude;
+        } else {
+          latitude = 0.0;
+          longitude = 0.0;
+        }
+
+        final position = LatLng(latitude, longitude);
+        
         return {
-          "position": LatLng(latitude, longitude),
+          "position": position,
           "added_by": data['added by'] ?? "Unknown",
           "building": data['building'] ?? "Unknown",
           "category": data['category'] ?? "Unknown",
           "description": data['description'] ?? "No description available",
-          "facilityName": data['facilityName'] ?? "Unknown",
+          "facilityName": data['facilityName'] ?? data['name'] ?? 'Unknown',
           "email": contactDetails['email'] ?? "no contacts available",
           "number": contactDetails['number'] ?? "no contacts available",
           "openHours": data['openHours'] ?? "Not specified",
@@ -176,12 +185,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   setState(() {
                     selectedPin = null;
                   });
-                }else if (searchInput.isEmpty) {
+                }else if (searchInput == '') {
                   setState(() {
                     showAllFacilities = false;
                   });
-                }else{
-
                 }
               },
             ),
@@ -337,6 +344,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             top: 10,
             left: 15,
             child: Search(
+              gotTapped: () {
+                setState(() {
+                  showAllFacilities = true;
+                });
+              },
               onChanged: (value) {
                 setState(() {
                   showAllFacilities = true;
