@@ -1,142 +1,147 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:uni_camp/src/components/information_row.dart';
 
 class LeftModal extends StatefulWidget {
-  const LeftModal({
-    super.key,
-    required this.selectedPin,
-    required this.children,
-    required this.search,
-  });
+  const LeftModal({super.key, required this.facilities, required this.setFacility, required this.searchQuery});
 
-  final Widget search;
-  final List<Widget> children;
-  final Map<String, dynamic>? selectedPin;
+  final List<Map<String, dynamic>> facilities;
+  final Function setFacility;
+  final String searchQuery;
 
   @override
   State<LeftModal> createState() => _LeftModalState();
 }
 
 class _LeftModalState extends State<LeftModal> {
+
+  // Filter the facilities based on the search query
+  List<Map<String, dynamic>> get filteredFacilities {
+    if (widget.searchQuery != '' || widget.searchQuery.isEmpty) {
+      return widget.facilities;
+    }
+
+    return widget.facilities.where((facility) {
+      final title = facility['title']?.toLowerCase() ?? '';
+      final description = facility['description']?.toLowerCase() ?? '';
+      final searchQuery = widget.searchQuery.toLowerCase();
+
+      return title.contains(searchQuery) || description.contains(searchQuery);
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Material(
-      elevation: 0,
-      color: Colors.transparent,
-      child: Container(
-        width: 350,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          // borderRadius: const BorderRadius.only(
-          //   topRight: Radius.circular(10),
-          //   bottomRight: Radius.circular(10),
-          // ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              spreadRadius: 1,
-              blurRadius: 5,
-              offset: const Offset(0, 3),
+    return Container(
+      width: 330,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          Container(height: 65, color: Colors.transparent,),
+
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+              child: ListView.builder(
+                itemCount: filteredFacilities.length,
+                itemBuilder: (context, index) {
+                  final facility = filteredFacilities[index];
+                  return Container(
+                    decoration: BoxDecoration(
+                      border: Border.symmetric(
+                        horizontal: BorderSide(
+                          color: Colors.grey.withOpacity(0.5),
+                          width: 0.5,
+                        ),
+                      )
+                    ),
+                    child: FacilityCard(widget: widget, facility: facility)
+                  );
+                },
+              ),
             ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
-              children: [
-                // widget.selectedPin?['image'] != null && widget.selectedPin?['image'].isNotEmpty
-                //   ? FittedBox(
-                //       fit: BoxFit.fitWidth,
-                //       child: Image.asset('assets/images/bg.png'),
-                //     )
-                //   : const SizedBox(height: 30)
+          ),
 
-                FittedBox(
-                    fit: BoxFit.fitWidth,
-                    child: Image.asset(
-                      'assets/images/bg.png',
-                    )),
+        ],
+      ),
+    );
+  }
+}
 
-                Positioned(
-                  top: 15,
-                  left: 25,
-                  child: widget.search,
-                ),
-              ],
+class FacilityCard extends StatelessWidget {
+  const FacilityCard({
+    super.key,
+    required this.widget,
+    required this.facility,
+  });
+
+  final LeftModal widget;
+  final Map<String, dynamic> facility;
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        widget.setFacility(facility);
+      },
+      style: ButtonStyle(
+        backgroundColor: WidgetStateProperty.all<Color>(Colors.transparent),
+        padding: WidgetStateProperty.all<EdgeInsetsGeometry>(const EdgeInsets.all(0)),
+        overlayColor: WidgetStateProperty.all<Color>(const Color.fromARGB(255, 238, 238, 238)),
+        shadowColor: WidgetStateProperty.all<Color>(Colors.transparent),
+        elevation: WidgetStateProperty.all<double>(0),
+      ),
+      child: Row(
+        children: [
+          // Image section
+          Container(
+            width: 100, // Adjust size for the image
+            height: 100, // Adjust size for the image
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: NetworkImage(facility['image'] ?? 'https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL'), // Default image URL
+                fit: BoxFit.cover,
+              ),
+              // borderRadius: const BorderRadius.only(topLeft: Radius.circular(10), bottomLeft: Radius.circular(10)),
             ),
-
-            // Main content
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
+          ),
+          
+          // Text content section
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.selectedPin?["facilityName"] ?? 'No Name Available',
+                    facility['title'] ?? 'No Title', // Handle null case for title
                     style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold),
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black, // Text color for title
+                    ),
                   ),
-                  const SizedBox(height: 10),
-                  Text(widget.selectedPin?["description"] ??
-                      'No description available')
-                ],
-              ),
-            ),
-
-            const Divider(
-              thickness: 2,
-            ),
-
-            // Additional details
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  InformationRow(
-                    icon: FontAwesomeIcons.list,
-                    content: widget.selectedPin?["category"] ?? 'No category',
-                  ),
-                  const SizedBox(height: 20),
-                  InformationRow(
-                    icon: FontAwesomeIcons.clock,
-                    content: widget.selectedPin?["openHours"] ??
-                        'No hours available',
-                  ),
-                  const SizedBox(height: 20),
-                  InformationRow(
-                    icon: FontAwesomeIcons.building,
-                    content: widget.selectedPin?["building"] ??
-                        'No building information',
-                  ),
-                  const SizedBox(height: 20),
-                  InformationRow(
-                    icon: FontAwesomeIcons.envelope,
-                    content: widget.selectedPin?["email"] ??
-                        'No contact details available',
-                  ),
-                  const SizedBox(height: 20),
-                  InformationRow(
-                    icon: FontAwesomeIcons.phone,
-                    content: widget.selectedPin?["number"] ??
-                        'No contact details available',
+                  const SizedBox(height: 8),
+                  Text(
+                    facility['description'] ?? 'No description available', // Handle null case for description
+                    style: const TextStyle(fontSize: 12, color: Colors.black), // Adjust the text color for description
                   ),
                 ],
               ),
             ),
-
-            const Divider(
-              thickness: 2,
-            ),
-
-            // Actions
-            ...widget.children,
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
