@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
 class LeftModal extends StatefulWidget {
-  const LeftModal({super.key, required this.facilities, required this.setFacility, required this.searchQuery});
+  const LeftModal({super.key, required this.facilities, required this.setFacility, required this.searchQuery, this.searchController});
 
   final List<Map<String, dynamic>> facilities;
   final Function setFacility;
   final String searchQuery;
+  final TextEditingController? searchController;
 
   @override
   State<LeftModal> createState() => _LeftModalState();
@@ -70,7 +71,7 @@ class _LeftModalState extends State<LeftModal> {
                           ),
                         ),
                       ),
-                      child: FacilityCard(widget: widget, facility: facility),
+                      child: FacilityCard(widget: widget, facility: facility, searchController: widget.searchController),
                     );
                   },
                 ),
@@ -87,16 +88,19 @@ class FacilityCard extends StatelessWidget {
     super.key,
     required this.widget,
     required this.facility,
+    required this.searchController,
   });
 
   final LeftModal widget;
   final Map<String, dynamic> facility;
+  final TextEditingController? searchController;
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: () {
         widget.setFacility(facility);
+        searchController?.clear();
       },
       style: ButtonStyle(
         backgroundColor: WidgetStateProperty.all<Color>(Colors.transparent),

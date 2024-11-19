@@ -6,25 +6,20 @@ class Search extends StatefulWidget {
     super.key,
     required this.onChanged,
     required this.gotTapped,
+    required this.searchController,
   });
 
   final ValueChanged<String> onChanged;
   final VoidCallback gotTapped;
+  final TextEditingController searchController;
 
   @override
   State<Search> createState() => _SearchState();
 }
 
 class _SearchState extends State<Search> {
-  final TextEditingController _controller = TextEditingController();
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  bool get isEmpty => _controller.text.isEmpty;
+  bool get isEmpty => widget.searchController.text.isEmpty;
 
   @override
   Widget build(BuildContext context) {
@@ -48,10 +43,10 @@ class _SearchState extends State<Search> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: TextField(
-                controller: _controller,
+                controller: widget.searchController,
                 onChanged: (_) {
                   setState(() {
-                    widget.onChanged(_controller.text);
+                    widget.onChanged(widget.searchController.text);
                   });
                 },
                 onTap: widget.gotTapped,
@@ -65,11 +60,11 @@ class _SearchState extends State<Search> {
           ),
     
           // Display the "X" button when there is text in the TextField
-          if (_controller.text.isNotEmpty) 
+          if (widget.searchController.text.isNotEmpty) 
             IconButton(
               icon: const Icon(FontAwesomeIcons.x, size: 16, color: Colors.blue),
               onPressed: () {
-                _controller.clear();
+                widget.searchController.clear();
                 widget.onChanged('');
               },
             ),

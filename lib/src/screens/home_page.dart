@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:uni_camp/src/components/facility_modal.dart';
-// import 'package:uni_camp/src/components/map_legend.dart';
+import 'package:uni_camp/src/components/map_legend.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:uni_camp/src/components/left_modal.dart';
 import 'package:uni_camp/src/components/right_modal.dart';
@@ -25,6 +25,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
   final LatLng initialPosition = const LatLng(7.072033, 125.613094);
+  final TextEditingController _searchController = TextEditingController();
   late final _animatedMapController = AnimatedMapController(vsync: this);
   List<Polygon> polygons = getPolygons();
 
@@ -249,7 +250,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             ],
           ),
 
-          // MapLegend(),
+          MapLegend(),
 
           Positioned(
             left: 0,
@@ -263,6 +264,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 showAllFacilities ? LeftModal(
                   facilities: markerData,
                   searchQuery: searchInput,
+                  searchController: _searchController,
                   setFacility: (data) => setState(() {
                     selectedPin = data;
                     searchInput = '';
@@ -344,6 +346,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             top: 10,
             left: 15,
             child: Search(
+              searchController: _searchController,
               gotTapped: () {
                 setState(() {
                   showAllFacilities = true;
