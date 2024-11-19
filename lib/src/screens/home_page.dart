@@ -6,6 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:uni_camp/src/components/left_modal.dart';
 // import 'package:uni_camp/src/components/map_legend.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:uni_camp/src/components/map_legend.dart';
 import 'package:uni_camp/src/components/right_modal.dart';
 import 'package:uni_camp/src/components/search.dart';
 // import 'package:uni_camp/src/components/top_bar.dart';
@@ -227,9 +228,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
-
-            // MapLegend(),
-
+            MapLegend(),
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -261,7 +260,6 @@ class _HomePageState extends State<HomePage> {
                 // const TopBar(children: [Text('Sample', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w500),)])
               ],
             ),
-
             Positioned(
               top: 10,
               right: 10,
@@ -291,7 +289,6 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
-
             if (newLocation)
               RightModal(
                 onCancel: () => setState(() {
