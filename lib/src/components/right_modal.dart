@@ -31,12 +31,25 @@ class _RightModalState extends State<RightModal> {
   Uint8List? imageBytes;
   final TextEditingController facilityNameController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
-  final TextEditingController openHoursController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController contactNumberController = TextEditingController();
+  List<bool> days = List.generate(7, (index) => false);
+  List<TimeOfDay?> startTimes = List.generate(7, (index) => null);
+  List<TimeOfDay?> endTimes = List.generate(7, (index) => null);
 
   String? selectedCategory;
   String? selectedBuilding;
+
+  void onDataChange(Map<String, dynamic> data) {
+    setState(() {
+      days.clear();
+      days.addAll(data['days']);
+      startTimes.clear();
+      startTimes.addAll(data['startTimes']);
+      endTimes.clear();
+      endTimes.addAll(data['endTimes']);
+    });
+  }
 
   List<Map<String, String>> categories = [
     {'value': 'Cafeteria', 'label': 'Cafeteria'},
@@ -75,15 +88,16 @@ class _RightModalState extends State<RightModal> {
     // If temptData is available, populate the form fields
     if (widget.temptData != null) {
       setState(() {
-        facilityNameController.text = widget.temptData?['name'];
-        descriptionController.text = widget.temptData?['description'];
-        openHoursController.text = widget.temptData?['openHours'];
-        selectedCategory = widget.temptData?['category'];
-        selectedBuilding = widget.temptData?['building'];
-        // idk how to fix huhu, for now ginull nlang sa nako, so whenever pag magselect pin mawala sya.
-        emailController.text = widget.temptData?['contactNumber'] ?? '';
-        contactNumberController.text = widget.temptData?['contactNumber'] ?? '';
-        imageBytes = widget.temptData?['image'];
+        facilityNameController.text = widget.temptData?['facilityName']; // string
+        descriptionController.text = widget.temptData?['description']; // string
+        days = widget.temptData?['days']; // list of bool
+        startTimes = widget.temptData?['startTimes']; // list of TimeOfDay
+        endTimes = widget.temptData?['endTimes']; // list of TimeOfDay
+        selectedCategory = widget.temptData?['category']; // string (drop dowm)
+        selectedBuilding = widget.temptData?['building']; // string (drop down)
+        emailController.text = widget.temptData?['contactNumber']; // string
+        contactNumberController.text = widget.temptData?['contactNumber']; // string
+        imageBytes = widget.temptData?['image']; // image
       });
     }
   }
@@ -275,13 +289,14 @@ class _RightModalState extends State<RightModal> {
                                 ],
                               ),
                               const SizedBox(height: 20),
-                              TextFormField(
-                                controller: openHoursController,
-                                decoration: const InputDecoration(
-                                  hintText: 'Open hours',
-                                  isDense: true,
-                                ),
-                              ),
+
+                              const Text('Open Hours',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black54,
+                              )),
+                              TimePickerWidget(onDataChange: (data) => onDataChange(data), days: days, startTimes: startTimes, endTimes: endTimes),
                               const SizedBox(height: 10),
                               const Text(
                                 'Category',
@@ -393,13 +408,15 @@ class _RightModalState extends State<RightModal> {
                               TextButton(
                                 onPressed: () {
                                   Map<String, dynamic> formData = {
-                                    'name': facilityNameController.text,
+                                    'facilityName': facilityNameController.text,
                                     'description': descriptionController.text,
-                                    'openHours': openHoursController.text,
+                                    'days': days,
+                                    'startTimes': startTimes,
+                                    'endTimes': endTimes,
                                     'category': selectedCategory,
                                     'building': selectedBuilding,
-                                    'email': emailController.text,
-                                    'number': contactNumberController.text,
+                                    'contactEmail': emailController.text,
+                                    'contactNumber': contactNumberController.text,
                                     'image': imageBytes,
                                     'selectedPin': widget.selectedPin,
                                   };
@@ -456,45 +473,55 @@ class _RightModalState extends State<RightModal> {
                                         if (_formKey.currentState?.validate() ??
                                             false) {
                                           // Get current user
-                                          User? user =
-                                              FirebaseAuth.instance.currentUser;
-                                          String? userName =
-                                              user?.displayName ??
-                                                  'Unknown User';
+                                          
+                                          print('Facility Name: ${facilityNameController.text}');
+                                          print('Description: ${descriptionController.text}');
+                                          // print('Open Hours: ${_concatenateDays(context, days, startTimes, endTimes)}');
+                                          print('Category: $selectedCategory');
+                                          print('Building: $selectedBuilding');
+                                          print('Email: ${emailController.text}');
+                                          print('Contact Number: ${contactNumberController.text}');
+                                          print('Selected Pin: ${widget.selectedPin.latitude}, ${widget.selectedPin.longitude}');
 
-                                          Map<String, dynamic> formData = {
-                                            'name': facilityNameController.text,
-                                            'description':
-                                                descriptionController.text,
-                                            'openHours':
-                                                openHoursController.text,
-                                            'category': selectedCategory,
-                                            'building': selectedBuilding,
-                                            'contact_details': {
-                                              'contact_email':
-                                                  emailController.text,
-                                              'contact_number':
-                                                  contactNumberController.text,
-                                            },
-                                            'selectedPin': {
-                                              'latitude':
-                                                  widget.selectedPin.latitude,
-                                              'longitude':
-                                                  widget.selectedPin.longitude,
-                                            },
-                                            'timestamp':
-                                                FieldValue.serverTimestamp(),
-                                            'added by': userName,
-                                          };
+                                          // User? user =
+                                          //     FirebaseAuth.instance.currentUser;
+                                          // String? userName =
+                                          //     user?.displayName ??
+                                          //         'Unknown User';
 
-                                          if (imageBytes != null) {
-                                            formData['image'] = imageBytes;
-                                          }
+                                          // Map<String, dynamic> formData = {
+                                          //   'name': facilityNameController.text,
+                                          //   'description':
+                                          //       descriptionController.text,
+                                          //   'openHours':
+                                          //       openHoursController.text,
+                                          //   'category': selectedCategory,
+                                          //   'building': selectedBuilding,
+                                          //   'contact_details': {
+                                          //     'contact_email':
+                                          //         emailController.text,
+                                          //     'contact_number':
+                                          //         contactNumberController.text,
+                                          //   },
+                                          //   'selectedPin': {
+                                          //     'latitude':
+                                          //         widget.selectedPin.latitude,
+                                          //     'longitude':
+                                          //         widget.selectedPin.longitude,
+                                          //   },
+                                          //   'timestamp':
+                                          //       FieldValue.serverTimestamp(),
+                                          //   'added by': userName,
+                                          // };
 
-                                          // Save to Firestore
-                                          await FirebaseFirestore.instance
-                                              .collection('facilities')
-                                              .add(formData);
+                                          // if (imageBytes != null) {
+                                          //   formData['image'] = imageBytes;
+                                          // }
+
+                                          // // Save to Firestore
+                                          // await FirebaseFirestore.instance
+                                          //     .collection('facilities')
+                                          //     .add(formData);
 
                                           toastification.show(
                                             // ignore: use_build_context_synchronously
@@ -530,6 +557,116 @@ class _RightModalState extends State<RightModal> {
           ),
         ),
       ),
+    );
+  }
+}
+
+
+// ilisda ang dapat ilisdan. thanks
+class TimePickerWidget extends StatefulWidget {
+  final Function(Map<String, dynamic>) onDataChange;
+  final List<bool> days;
+  final List<TimeOfDay?> startTimes;
+  final List<TimeOfDay?> endTimes;
+
+  const TimePickerWidget({super.key, required this.onDataChange, required this.days, required this.startTimes, required this.endTimes});
+
+  @override
+  State<TimePickerWidget> createState() => _TimePickerWidgetState();
+}
+
+class _TimePickerWidgetState extends State<TimePickerWidget> {
+  List<bool> days = List.generate(7, (index) => false);
+  List<TimeOfDay?> startTimes = List.generate(7, (index) => null);
+  List<TimeOfDay?> endTimes = List.generate(7, (index) => null);
+
+  void _pickTime(BuildContext context, int index, bool isStartTime) async {
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (pickedTime != null) {
+      setState(() {
+        if (isStartTime) {
+          widget.startTimes[index] = pickedTime;
+        } else {
+          widget.endTimes[index] = pickedTime;
+        }
+      });
+
+      _sendDataToParent();
+    }
+  }
+
+  void _sendDataToParent() {
+    widget.onDataChange({
+      'days': widget.days,
+      'startTimes': widget.startTimes,
+      'endTimes': widget.endTimes,
+    });
+  }
+
+  String _dayName(int index) {
+    const daysOfWeek = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ];
+    return daysOfWeek[index];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: List.generate(7, (i) {
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Checkbox(
+                  value: widget.days[i],
+                  onChanged: (value) {
+                    setState(() {
+                      widget.days[i] = value!;
+                    });
+                    _sendDataToParent();
+                  },
+                ),
+                Text(_dayName(i)),
+              ],
+            ),
+            Row(
+              children: [
+                TextButton(
+                  onPressed: widget.days[i] ? () => _pickTime(context, i, true) : null,
+                  child: Text(
+                    widget.startTimes[i]?.format(context) ?? 'Start Time',
+                    style: TextStyle(
+                      color: widget.days[i] ? null : Colors.grey,
+                    ),
+                  ),
+                ),
+                const Text('to'),
+                TextButton(
+                  onPressed: widget.days[i] ? () => _pickTime(context, i, false) : null,
+                  child: Text(
+                    widget.endTimes[i]?.format(context) ?? 'End Time',
+                    style: TextStyle(
+                      color: widget.days[i] ? null : Colors.grey,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      }),
     );
   }
 }
