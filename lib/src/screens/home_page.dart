@@ -45,6 +45,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   bool showAllFacilities = false;
   // searchInput
   String searchInput = '';
+  // tempt data for searchInput
+  String temptSearchInput = '';
   // Markers
   List<Map<String, dynamic>> markerData = [
     // {
@@ -165,7 +167,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       isSelecting = false;
       newLocation = true;
       selectedPin = savePin;
-      showAllFacilities = true;
 
       toastification.show(
         context: context,
@@ -356,6 +357,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   temptData = null;
                   selectedCoordinates = const LatLng(0, 0);
                   newLocation = false;
+                  searchInput = temptSearchInput;
+                  if (searchInput != '') {
+                    showAllFacilities = true;
+                  }
                 }),
                 onSelectPin: (data) => setState(() {
                   isSelecting = true;
@@ -363,7 +368,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   showAllFacilities = false;
                   savePin = selectedPin;
                   selectedPin = null;
-
+                  temptSearchInput = searchInput;
                   temptData = data;
                   // toast, please select a location
                   toastification.show(
