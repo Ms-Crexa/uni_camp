@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:uni_camp/src/components/facility_modal.dart';
-import 'package:uni_camp/src/components/map_legend.dart';
+import 'package:uni_camp/src/ui/map_legend.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:uni_camp/src/components/left_modal.dart';
 import 'package:uni_camp/src/components/right_modal.dart';
@@ -46,7 +46,35 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   // searchInput
   String searchInput = '';
   // Markers
-  List<Map<String, dynamic>> markerData = [];
+  List<Map<String, dynamic>> markerData = [
+    // {
+    //   "position": const LatLng(7.0715, 125.6125),
+    //   "added_by": "John Doe",
+    //   "building": "Main Building",
+    //   "category": "Classroom",
+    //   "description": "This is a classroom",
+    //   "name": "Room 101",
+    //   "email": "random@gmail.com",
+    //   "number": "09123456789",
+    //   "openHours": {
+    //     'Monday': '8:00 AM - 5:00 PM',
+    //     'Tuesday': '8:00 AM - 5:00 PM',
+    //     'Wednesday': '8:00 AM - 5:00 PM',
+    //     'Thursday': '8:00 AM - 5:00 PM',
+    //     'Friday': '8:00 AM - 5:00 PM',
+    //     'Saturday': '8:00 AM - 5:00 PM',
+    //     'Sunday': 'Closed',
+    //   },
+    //   "timestamp": Timestamp(1633056000, 0),
+    //   "created_at": Timestamp(1633056000, 0),
+    //   "updated_at": Timestamp(1633056000, 0),
+    //   "images": [
+    //     "https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL",
+    //     "https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL",
+    //     "https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL",
+    //   ],
+    // },
+  ];
 
   @override
   void initState() {
@@ -100,8 +128,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           "name": data['name'] ?? 'Unknown',
           "email": contactDetails['contact_email'] ?? "no contacts available",
           "number": contactDetails['contact_number'] ?? "no contacts available",
-          "openHours": data['openHours'] ?? "Not specified",
+          "openHours": data['openHours'] ?? data['open_hours'] ?? "Not specified",
           "timestamp": data['timestamp'] ?? "No timestamp available",
+          "created_at": data['created_at'] ?? "No created at available",
+          "updated_at": data['updated_at'] ?? "No updated at available",
         };
       }).toList();
 
@@ -286,7 +316,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   selectedPin != null
                       ? FacilityModal(
                           selectedPin: selectedPin,
-                          children: const [],
                         )
                       : const SizedBox.shrink(),
                 ],
