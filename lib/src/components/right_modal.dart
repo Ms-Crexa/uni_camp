@@ -75,7 +75,7 @@ class _RightModalState extends State<RightModal> {
     // If temptData is available, populate the form fields
     if (widget.temptData != null) {
       setState(() {
-        facilityNameController.text = widget.temptData?['facilityName'];
+        facilityNameController.text = widget.temptData?['name'];
         descriptionController.text = widget.temptData?['description'];
         openHoursController.text = widget.temptData?['openHours'];
         selectedCategory = widget.temptData?['category'];
@@ -393,7 +393,7 @@ class _RightModalState extends State<RightModal> {
                               TextButton(
                                 onPressed: () {
                                   Map<String, dynamic> formData = {
-                                    'facilityName': facilityNameController.text,
+                                    'name': facilityNameController.text,
                                     'description': descriptionController.text,
                                     'openHours': openHoursController.text,
                                     'category': selectedCategory,
@@ -463,17 +463,17 @@ class _RightModalState extends State<RightModal> {
                                                   'Unknown User';
 
                                           Map<String, dynamic> formData = {
-                                            'facilityName':
-                                                facilityNameController.text,
+                                            'name': facilityNameController.text,
                                             'description':
                                                 descriptionController.text,
                                             'openHours':
                                                 openHoursController.text,
                                             'category': selectedCategory,
                                             'building': selectedBuilding,
-                                            'contactDetails': {
-                                              'email': emailController.text,
-                                              'number':
+                                            'contact_details': {
+                                              'contact_email':
+                                                  emailController.text,
+                                              'contact_number':
                                                   contactNumberController.text,
                                             },
                                             'selectedPin': {
