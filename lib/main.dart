@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:uni_camp/days_hous.dart';
 import 'package:uni_camp/src/screens/signin_page.dart';
 import 'firebase_options.dart';
 import 'package:json_theme_plus/json_theme_plus.dart';
@@ -28,7 +29,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: theme,
       title: 'Flutter Google Sign-In',
-      home: SignInPage(),
+      home: ScheduleWidget(),
     );
   }
 }
