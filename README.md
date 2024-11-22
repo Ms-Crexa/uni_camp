@@ -14,11 +14,6 @@
   - Upload and manage facility images.
   - Edit existing facility data to reflect updates.
   - Delete outdated or irrelevant facilities.
-  
-- **User-Friendly Interface**:
-  - Secure login for authorized administrators.
-  - Intuitive layout to streamline facility management tasks.
-
 ---
 
 ## Screenshots
@@ -30,11 +25,16 @@
 ### Admin Dashboard
 ![image](https://github.com/user-attachments/assets/1b0cb04a-75b8-40e7-b132-7edbbd43009f)
 *The main dashboard where administrators can view and manage facilities.*
+- **When a pin is selected**
+  
+![image](https://github.com/user-attachments/assets/4e934f48-ca3a-4827-b39a-e7e128b709ed)
 
----
+- **When a searching a facility**
+  
+![image](https://github.com/user-attachments/assets/cede14b2-d497-4e54-99ea-438c3e59a410)
 
-### Steps
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/unicamp-admin.git
-   cd unicamp-admin
+- **When you want to add a facility using the plus icon on the bottom right**
+
+![image](https://github.com/user-attachments/assets/017775ce-53b0-452e-bd75-8a8da5816fdb)
+
+
