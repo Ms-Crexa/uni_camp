@@ -59,8 +59,8 @@ This project is developed using Flutter. To set up the project locally, follow t
 
 1. **Clone the repository**:  
    ```bash
-   git clone https://github.com/markclarde/uni_camp_android.git
-   cd uni_camp_android
+   git clone https://github.com/Ms-Crexa/uni_camp.git](https://github.com/Ms-Crexa/uni_camp.git
+   cd uni_camp
 
 2. **Install dependencies**:  
    ```bash
@@ -70,4 +70,3 @@ This project is developed using Flutter. To set up the project locally, follow t
    ```bash
    flutter run
 
-git clone https://github.com/yourusername/unicamp-admin-dashboard.git
