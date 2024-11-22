@@ -1,36 +1,40 @@
-# uni_camp
+# Unicamp Project - Admin Dashboard
 
-A new Flutter project.
+## Overview
 
-## Getting Started
+**Unicamp** is a web-based admin application that allows administrators to efficiently manage campus facilities. The app provides tools to create, update, and delete facility information, including images, ensuring the campus map remains accurate and up-to-date.
 
-This project is a starting point for a Flutter application that follows the
-[simple app state management
-tutorial](https://flutter.dev/to/state-management-sample).
+---
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Features
 
-## How to run
+### Admin Dashboard:
+- **Facility Management**:
+  - Add new facilities with details such as name, description, location, and contact information.
+  - Upload and manage facility images.
+  - Edit existing facility data to reflect updates.
+  - Delete outdated or irrelevant facilities.
+  
+- **User-Friendly Interface**:
+  - Secure login for authorized administrators.
+  - Intuitive layout to streamline facility management tasks.
 
-  To view images from Firestore Storage, use:
-  ```
-  flutter run -d chrome --web-renderer html
-  ```
+---
 
-## Assets
+## Screenshots
 
-The `assets` directory houses images, fonts, and any other files you want to
-include with your application.
+### Login Page
+![Login Page](path/to/login-page-screenshot.png)
+*The secure login page for administrators to authenticate before accessing the dashboard.*
 
-The `assets/images` directory contains [resolution-aware
-images](https://flutter.dev/to/resolution-aware-images).
+### Admin Dashboard
+![Dashboard](path/to/dashboard-screenshot.png)
+*The main dashboard where administrators can view and manage facilities.*
 
-## Localization
+---
 
-This project generates localized messages based on arb files found in
-the `lib/src/localization` directory.
-
-To support additional languages, please visit the tutorial on
-[Internationalizing Flutter apps](https://flutter.dev/to/internationalization).
+### Steps
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/unicamp-admin.git
+   cd unicamp-admin
