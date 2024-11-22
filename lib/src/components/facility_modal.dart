@@ -57,34 +57,48 @@ class _FacilityModal extends State<FacilityModal> {
                       controller: buttonCarouselController,
                     ),
                     items: widget.selectedPin?['images'] != null
-                        ? List.generate(
-                          widget.selectedPin?['images'].length,
-                          (index) => GestureDetector(
-                            onTap: () {
-                              _showFullScreenImage(context, widget.selectedPin?['images'][index]);
-                            },
-                            child: Image.network(
-                              widget.selectedPin?['images'][index] ??
-                                  'https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL',
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              height: 200,
+                        ? widget.selectedPin!['images']
+                            .map<Widget>(
+                              (imageUrl) => GestureDetector(
+                                onTap: () {
+                                  _showFullScreenImage(context, imageUrl);
+                                },
+                                child: Image.network(
+                                  imageUrl,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: 200,
+                                  loadingBuilder: (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return const Center(child: CircularProgressIndicator());
+                                  },
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const Center(
+                                      child: Text(
+                                        'Failed to load image',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            )
+                            .toList()
+                        : [
+                            GestureDetector(
+                              onTap: () {
+                                _showFullScreenImage(
+                                    context,
+                                    'https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL');
+                              },
+                              child: Image.network(
+                                'https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL',
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: 200,
+                              ),
                             ),
-                          ),
-                        )
-                      : [
-                          GestureDetector(
-                            onTap: () {
-                              _showFullScreenImage(context, 'https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL');
-                            },
-                            child: Image.network(
-                              'https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL',
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              height: 200,
-                            ),
-                          ),
-                        ],
+                          ],
                   ),
                   Positioned(
                     left: 0,
