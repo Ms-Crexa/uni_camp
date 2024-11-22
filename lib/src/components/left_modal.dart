@@ -121,17 +121,25 @@ class FacilityCard extends StatelessWidget {
       child: Row(
         children: [
           // Image section
-          Container(
+          SizedBox(
             width: 100,
             height: 100,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: NetworkImage(facility['images'][0] ??
-                    'https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL'), // Default image URL
-                fit: BoxFit.cover,
-              ),
-              // borderRadius: const BorderRadius.only(topLeft: Radius.circular(10), bottomLeft: Radius.circular(10)),
-            ),
+            child: Image.network(facility['images'][0] ??
+              'https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL',
+              fit: BoxFit.cover,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return const Center(child: CircularProgressIndicator());
+              },
+              errorBuilder: (context, error, stackTrace) {
+                return const Center(
+                  child: Text(
+                    'Failed to load image',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                );
+              },
+            ), 
           ),
 
           // Text content section
