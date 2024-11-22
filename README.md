@@ -42,4 +42,32 @@
 
 ---
 
-Feel free to contribute or provide feedback – together, we can make Unicamp even better! 💪✨
+## Developers 👨‍💻👩‍💻
+
+### 🚀 Meet the Duo Behind Unicamp!
+
+- **👨‍💻 Peter Casiano** - **Frontend Developer**  
+
+- **👩‍💻 Ninya Paraiso** - **Backend Developer**  
+
+
+---
+
+## Getting Started 🚀
+
+This project is developed using Flutter. To set up the project locally, follow the steps below:
+
+1. **Clone the repository**:  
+   ```bash
+   git clone https://github.com/markclarde/uni_camp_android.git
+   cd uni_camp_android
+
+2. **Install dependencies**:  
+   ```bash
+   flutter pub get
+
+3. **Run the app**:  
+   ```bash
+   flutter run
+
+git clone https://github.com/yourusername/unicamp-admin-dashboard.git
