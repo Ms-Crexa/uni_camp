@@ -28,6 +28,7 @@
 *The login page for administrators to authenticate before accessing the dashboard.*
 
 ### Admin Dashboard
+![image](https://github.com/user-attachments/assets/1b0cb04a-75b8-40e7-b132-7edbbd43009f)
 *The main dashboard where administrators can view and manage facilities.*
 
 ---
