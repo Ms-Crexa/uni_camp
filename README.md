@@ -12,6 +12,13 @@ For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
 
+## How to run
+
+  To view images from Firestore Storage, use:
+  ```
+  flutter run -d chrome --web-renderer html
+  ```
+
 ## Assets
 
 The `assets` directory houses images, fonts, and any other files you want to
