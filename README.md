@@ -1,4 +1,4 @@
-# Unicamp Project - Admin Dashboard
+# 🌟 Unicamp Project - Admin Dashboard 🌟
 
 ## Overview
 
@@ -36,3 +36,7 @@
 - **When you want to add a facility** ➕
 ![image](https://github.com/user-attachments/assets/017775ce-53b0-452e-bd75-8a8da5816fdb)
 *Click the **plus icon** on the bottom right to add a new facility.*
+
+---
+
+Feel free to contribute or provide feedback – together, we can make Unicamp even better! 💪✨
