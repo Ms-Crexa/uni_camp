@@ -24,11 +24,10 @@
 ## Screenshots
 
 ### Login Page
-![Login Page](path/to/login-page-screenshot.png)
-*The secure login page for administrators to authenticate before accessing the dashboard.*
+![image](https://github.com/user-attachments/assets/cb905319-d225-4553-aa17-72a2059424e2)
+*The login page for administrators to authenticate before accessing the dashboard.*
 
 ### Admin Dashboard
-![Dashboard](path/to/dashboard-screenshot.png)
 *The main dashboard where administrators can view and manage facilities.*
 
 ---
