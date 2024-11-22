@@ -126,7 +126,7 @@ class FacilityCard extends StatelessWidget {
             height: 100,
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: NetworkImage(facility['image'] ??
+                image: NetworkImage(facility['images'][0] ??
                     'https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL'), // Default image URL
                 fit: BoxFit.cover,
               ),
