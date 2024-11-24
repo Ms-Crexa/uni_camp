@@ -6,7 +6,8 @@ class LeftModal extends StatefulWidget {
       required this.facilities,
       required this.setFacility,
       required this.searchQuery,
-      this.searchController});
+      this.searchController
+      });
 
   final List<Map<String, dynamic>> facilities;
   final Function setFacility;

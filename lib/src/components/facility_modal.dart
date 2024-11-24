@@ -11,9 +11,11 @@ class FacilityModal extends StatefulWidget {
     super.key,
     required this.selectedPin,
     this.search,
+    required this.isEditing,
   });
 
   final Widget? search;
+  final Function isEditing;
   final Map<String, dynamic>? selectedPin;
 
   @override
@@ -218,19 +220,15 @@ class _FacilityModal extends State<FacilityModal> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     ElevatedButton(
-                      onPressed: null,
+                      onPressed: () {
+                        widget.isEditing(
+                          widget.selectedPin
+                        );
+                      },
                       style: ButtonStyle(
                         fixedSize: WidgetStateProperty.all(const Size(140, 35)),
                       ),
                       child: const Text('Edit'),
-                    ),
-                    const SizedBox(width: 10,),
-                    ElevatedButton(
-                      onPressed: null,
-                      style: ButtonStyle(
-                        fixedSize: WidgetStateProperty.all(const Size(140, 35)),
-                      ),
-                      child: const Text('Confirm'),
                     ),
                   ],
                 ),

@@ -10,18 +10,19 @@ import 'dart:typed_data';
 import 'package:uni_camp/src/components/open_hours_form.dart';
 
 class RightModal extends StatefulWidget {
-  const RightModal({
-    super.key,
-    required this.onCancel,
-    required this.selectedPin,
-    required this.onSelectPin,
-    required this.temptData,
-  });
+  const RightModal(
+      {super.key,
+      required this.onCancel,
+      required this.selectedPin,
+      required this.onSelectPin,
+      required this.temptData,
+      required this.isEditing});
 
   final Function() onCancel;
   final LatLng selectedPin;
   final Function(Map<String, dynamic>) onSelectPin;
   final Map<String, dynamic>? temptData;
+  final Map<String, dynamic> isEditing;
 
   @override
   State<RightModal> createState() => _RightModalState();
@@ -46,6 +47,16 @@ class _RightModalState extends State<RightModal> {
     {'value': 'Laboratory', 'label': 'Laboratory'},
     {'value': 'Clinic', 'label': 'Clinic'},
     {'value': 'Gym', 'label': 'Gym'},
+    {'value': 'Technology', 'label': 'Technology'},
+    {'value': 'Auditorium', 'label': 'Auditorium'},
+    {'value': 'Student Services', 'label': 'Student Services'},
+    {'value': 'Study', 'label': 'Study'},
+    {'value': 'Sports', 'label': 'Sports'},
+    {'value': 'Alumni', 'label': 'Alumni'},
+    {'value': 'Administrative', 'label': 'Admnistrative'},
+    {'value': 'Events', 'label': 'Events'},
+    {'value': 'Community', 'label': 'Community'},
+    {'value': 'Health', 'label': 'Health'},
     {'value': 'Office', 'label': 'Office'},
   ];
 
@@ -67,6 +78,7 @@ class _RightModalState extends State<RightModal> {
       'value': 'Chapel of Our Lady of the Assumption',
       'label': 'Chapel of Our Lady of the Assumption'
     },
+    {'value': 'Martin Hall', 'label': 'Martin Hall'}
   ];
 
   // if there is a temptData, set the values of the fields
@@ -74,18 +86,41 @@ class _RightModalState extends State<RightModal> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // If temptData is available, populate the form fields
-    if (widget.temptData != null) {
+    print(widget.isEditing['isEditing']);
+    print(widget.isEditing['data']);
+
+    if (widget.isEditing['isEditing'] == true) {
+      // If isEditing is available, populate the form fields
       setState(() {
-        facilityNameController.text = widget.temptData?['facilityName']; // string
-        descriptionController.text = widget.temptData?['description']; // string
-        schedules = widget.temptData?['openHours']; // list
-        selectedCategory = widget.temptData?['category']; // string (drop dowm)
-        selectedBuilding = widget.temptData?['building']; // string (drop down)
-        emailController.text = widget.temptData?['contactNumber']; // string
-        contactNumberController.text = widget.temptData?['contactNumber']; // string
-        imageBytes = widget.temptData?['image']; // image
+        facilityNameController.text = widget.isEditing['data']['name']; // string
+        descriptionController.text = widget.isEditing['data']['description']; // string
+        // schedules = widget.isEditing['data']['openHours']; // list
+        selectedCategory = widget.isEditing['data']['category']; // string (drop dowm)
+        selectedBuilding = widget.isEditing['data']['building']; // string (drop down)
+        emailController.text = widget.isEditing['data']['email']; // string
+        contactNumberController.text = widget.isEditing['data']['number']; // string
+        // imageBytes = widget.isEditing['data']['images']; // image
       });
+
+    } else {
+      // If temptData is available, populate the form fields
+      if (widget.temptData != null) {
+        setState(() {
+          facilityNameController.text =
+              widget.temptData?['facilityName']; // string
+          descriptionController.text =
+              widget.temptData?['description']; // string
+          schedules = widget.temptData?['openHours']; // list
+          selectedCategory =
+              widget.temptData?['category']; // string (drop dowm)
+          selectedBuilding =
+              widget.temptData?['building']; // string (drop down)
+          emailController.text = widget.temptData?['contactNumber']; // string
+          contactNumberController.text =
+              widget.temptData?['contactNumber']; // string
+          imageBytes = widget.temptData?['image']; // image
+        });
+      }
     }
   }
 
@@ -118,20 +153,20 @@ class _RightModalState extends State<RightModal> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Padding(
+                Padding(
                   padding:
-                      EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 10),
+                      const EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('New Facility',
-                          style: TextStyle(
+                      Text(widget.isEditing['isEditing'] ? 'Updating ${widget.isEditing['data']['name']}' :'New Facility',
+                          style: const TextStyle(
                             fontSize: 20,
                             color: Color.fromARGB(255, 0, 84, 153),
                             fontWeight: FontWeight.bold,
                           )),
-                      SizedBox(height: 5),
-                      Text('Add a new facility to the map',
+                      const SizedBox(height: 5),
+                      const Text('Add a new facility to the map',
                           style: TextStyle(
                             fontSize: 12,
                             color: Color.fromARGB(255, 109, 109, 109),
@@ -171,10 +206,9 @@ class _RightModalState extends State<RightModal> {
                               TextFormField(
                                 controller: facilityNameController,
                                 decoration: const InputDecoration(
-                                  hintText: 'Facility name',
-                                  isDense: true,
-                                  border: OutlineInputBorder()
-                                ),
+                                    hintText: 'Facility name',
+                                    isDense: true,
+                                    border: OutlineInputBorder()),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
                                     return 'Please enter the facility name';
@@ -186,10 +220,9 @@ class _RightModalState extends State<RightModal> {
                               TextFormField(
                                 controller: descriptionController,
                                 decoration: const InputDecoration(
-                                  hintText: 'Description',
-                                  isDense: true,
-                                  border: OutlineInputBorder()
-                                ),
+                                    hintText: 'Description',
+                                    isDense: true,
+                                    border: OutlineInputBorder()),
                                 maxLines: 5,
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
@@ -228,10 +261,9 @@ class _RightModalState extends State<RightModal> {
                               TextFormField(
                                 controller: emailController,
                                 decoration: const InputDecoration(
-                                  hintText: 'Email',
-                                  isDense: true,
-                                  border: OutlineInputBorder()
-                                ),
+                                    hintText: 'Email',
+                                    isDense: true,
+                                    border: OutlineInputBorder()),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
                                     return 'Please enter the email';
@@ -243,10 +275,9 @@ class _RightModalState extends State<RightModal> {
                               TextFormField(
                                 controller: contactNumberController,
                                 decoration: const InputDecoration(
-                                  hintText: 'Contact Number',
-                                  isDense: true,
-                                  border: OutlineInputBorder()
-                                ),
+                                    hintText: 'Contact Number',
+                                    isDense: true,
+                                    border: OutlineInputBorder()),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
                                     return 'Please enter a number';
@@ -292,9 +323,8 @@ class _RightModalState extends State<RightModal> {
                                 value: selectedCategory,
                                 hint: const Text('Select a category'),
                                 decoration: const InputDecoration(
-                                  isDense: true,
-                                  border: OutlineInputBorder()
-                                ),
+                                    isDense: true,
+                                    border: OutlineInputBorder()),
                                 items: categories.map((data) {
                                   return DropdownMenuItem<String>(
                                     value: data['value']!,
@@ -312,11 +342,11 @@ class _RightModalState extends State<RightModal> {
                               ),
                               const SizedBox(height: 20),
                               const Text('Open Hours',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black54,
-                              )),
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black54,
+                                  )),
                               OpenHoursForm(
                                 openHours: schedules,
                                 onSave: (value) {
@@ -361,9 +391,8 @@ class _RightModalState extends State<RightModal> {
                               DropdownButtonFormField<String>(
                                 value: selectedBuilding,
                                 decoration: const InputDecoration(
-                                  isDense: true,
-                                  border: OutlineInputBorder()
-                                ),
+                                    isDense: true,
+                                    border: OutlineInputBorder()),
                                 hint: const Text('Select a building'),
                                 items: buildings.map((data) {
                                   return DropdownMenuItem<String>(
@@ -419,7 +448,8 @@ class _RightModalState extends State<RightModal> {
                                     itemCount: imageBytes.length,
                                     itemBuilder: (context, index) {
                                       return Padding(
-                                        padding: const EdgeInsets.only(right: 10),
+                                        padding:
+                                            const EdgeInsets.only(right: 10),
                                         child: Image.memory(
                                           imageBytes[index]!,
                                           width: 100,
@@ -440,7 +470,8 @@ class _RightModalState extends State<RightModal> {
                                     'category': selectedCategory,
                                     'building': selectedBuilding,
                                     'contactEmail': emailController.text,
-                                    'contactNumber': contactNumberController.text,
+                                    'contactNumber':
+                                        contactNumberController.text,
                                     'image': imageBytes,
                                     'selectedPin': widget.selectedPin,
                                   };
@@ -496,23 +527,46 @@ class _RightModalState extends State<RightModal> {
                                       onPressed: () async {
                                         if (_formKey.currentState?.validate() ??
                                             false) {
-
-                                              print('Facility Name: ${facilityNameController.text}');
-                                              print('Description: ${descriptionController.text}');
-                                              print('Open Hours: $schedules');
-                                              print('Category: $selectedCategory');
-                                              print('Building: $selectedBuilding');
-                                              print('Contact Email: ${emailController.text}');
-                                              print('Contact Number: ${contactNumberController.text}');
-                                              print('Selected Pin: ${widget.selectedPin.latitude}, ${widget.selectedPin.longitude}');
-                                              // print('Images: $imageBytes');
-
                                           // Get current user
-                                          // User? user =
-                                          //     FirebaseAuth.instance.currentUser;
-                                          // String? userName =
-                                          //     user?.displayName ??
-                                          //         'Unknown User';
+                                          User? user =
+                                              FirebaseAuth.instance.currentUser;
+                                          String? userName =
+                                              user?.displayName ??
+                                                  'Unknown User';
+
+                                          print(
+                                              'Facility Name: ${facilityNameController.text}');
+                                          print(
+                                              'Description: ${descriptionController.text}');
+                                          print('Open Hours: $schedules');
+                                          print('Category: $selectedCategory');
+                                          print('Building: $selectedBuilding');
+                                          print(
+                                              'Contact Email: ${emailController.text}');
+                                          print(
+                                              'Contact Number: ${contactNumberController.text}');
+                                          print(
+                                              'Selected Pin: ${widget.selectedPin.latitude}, ${widget.selectedPin.longitude}');
+                                          // print('Images: $imageBytes');
+
+                                          if (widget.isEditing!.isNotEmpty) {
+                                            // Update the data in Firestore
+                                            // await FirebaseFirestore.instance
+                                            //     .collection('facilities')
+                                            //     .doc(widget.isEditing?['id'])
+                                            //     .update({
+                                            //   'facilityName': facilityNameController.text,
+                                            //   'description': descriptionController.text,
+                                            //   'openHours': schedules,
+                                            //   'category': selectedCategory,
+                                            //   'building': selectedBuilding,
+                                            //   'contactEmail': emailController.text,
+                                            //   'contactNumber': contactNumberController.text,
+                                            //   'image': imageBytes,
+                                            //   'selectedPin': widget.selectedPin,
+                                            //   'edited by': userName,
+                                            // });
+                                          } else {
 
                                           // Map<String, dynamic> formData = {
                                           //   'name': facilityNameController.text,
@@ -546,6 +600,8 @@ class _RightModalState extends State<RightModal> {
                                           // await FirebaseFirestore.instance
                                           //     .collection('facilities')
                                           //     .add(formData);
+
+                                          }
 
                                           toastification.show(
                                             // ignore: use_build_context_synchronously

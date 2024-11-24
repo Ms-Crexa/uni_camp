@@ -47,6 +47,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   String searchInput = '';
   // tempt data for searchInput
   String temptSearchInput = '';
+  // is editing
+  Map<String, dynamic> isEditing = {'isEditing': false, 'data': {}};
   // Markers
   List<Map<String, dynamic>> markerData = [
     // {
@@ -318,6 +320,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   selectedPin != null
                       ? FacilityModal(
                           selectedPin: selectedPin,
+                          isEditing: (value) {
+                            setState(() {
+                              newLocation = true;
+                              selectedCoordinates = selectedPin!['position'];
+                              isEditing = {'isEditing': true, 'data': value};
+                            });
+                          },
                         )
                       : const SizedBox.shrink(),
                 ],
@@ -354,6 +363,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             ),
             if (newLocation)
               RightModal(
+                isEditing: isEditing,
                 onCancel: () => setState(() {
                   temptData = null;
                   selectedCoordinates = const LatLng(0, 0);
