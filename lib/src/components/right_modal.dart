@@ -86,8 +86,7 @@ class _RightModalState extends State<RightModal> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    print(widget.isEditing['isEditing']);
-    print(widget.isEditing['data']);
+    print(widget.isEditing['data']['images']);
 
     if (widget.isEditing['isEditing'] == true) {
       // If isEditing is available, populate the form fields
@@ -99,6 +98,8 @@ class _RightModalState extends State<RightModal> {
         selectedBuilding = widget.isEditing['data']['building']; // string (drop down)
         emailController.text = widget.isEditing['data']['email']; // string
         contactNumberController.text = widget.isEditing['data']['number']; // string
+        // save the network image to the imageBytes
+
         // imageBytes = widget.isEditing['data']['images']; // image
       });
 
@@ -440,6 +441,26 @@ class _RightModalState extends State<RightModal> {
                                 child: const Text('Upload Image'),
                               ),
                               // Display all the images in a carousel
+                              if (imageBytes.isEmpty && widget.isEditing['isEditing'])
+                                SizedBox(
+                                  height: 100,
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: widget.isEditing['data']['images'].length,
+                                    itemBuilder: (context, index) {
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 10),
+                                        child: Image.network(
+                                          widget.isEditing['data']['images'][index],
+                                          width: 100,
+                                          height: 100,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
                               if (imageBytes.isNotEmpty)
                                 SizedBox(
                                   height: 100,
@@ -549,7 +570,8 @@ class _RightModalState extends State<RightModal> {
                                               'Selected Pin: ${widget.selectedPin.latitude}, ${widget.selectedPin.longitude}');
                                           // print('Images: $imageBytes');
 
-                                          if (widget.isEditing!.isNotEmpty) {
+                                          if (widget.isEditing['isEditing']) {
+                                            print('Editing Facility');
                                             // Update the data in Firestore
                                             // await FirebaseFirestore.instance
                                             //     .collection('facilities')
@@ -567,7 +589,7 @@ class _RightModalState extends State<RightModal> {
                                             //   'edited by': userName,
                                             // });
                                           } else {
-
+                                            print('Adding Facility');
                                           // Map<String, dynamic> formData = {
                                           //   'name': facilityNameController.text,
                                           //   'description':

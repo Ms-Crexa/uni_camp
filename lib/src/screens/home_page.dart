@@ -366,6 +366,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 isEditing: isEditing,
                 onCancel: () => setState(() {
                   temptData = null;
+                  isEditing = {'isEditing': false, 'data': {}};
                   selectedCoordinates = const LatLng(0, 0);
                   newLocation = false;
                   searchInput = temptSearchInput;
