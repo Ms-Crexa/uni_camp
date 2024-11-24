@@ -1,15 +1,26 @@
 import 'package:flutter/material.dart';
 
-class ScheduleWidget extends StatefulWidget {
+class OpenHoursForm extends StatefulWidget {
+  const OpenHoursForm({super.key, required this.openHours, required this.onSave});
+
+  final List<Map<String, dynamic>> openHours;
+  final void Function(List<Map<String, dynamic>>) onSave;
+
   @override
-  _ScheduleWidgetState createState() => _ScheduleWidgetState();
+  _OpenHoursForm createState() => _OpenHoursForm();
 }
 
-class _ScheduleWidgetState extends State<ScheduleWidget> {
+class _OpenHoursForm extends State<OpenHoursForm> {
   List<bool> selectedDays = List.filled(7, false); // For Su, M, T, W, Th, F, Sa
   TimeOfDay startTime = TimeOfDay(hour: 7, minute: 0);
   TimeOfDay endTime = TimeOfDay(hour: 23, minute: 0);
   List<Map<String, dynamic>> schedules = [];
+
+  @override
+  void initState() {
+    super.initState();
+    schedules = List.from(widget.openHours);
+  }
 
   void _selectTime(BuildContext context, bool isStart) async {
     TimeOfDay? pickedTime = await showTimePicker(
@@ -36,6 +47,9 @@ class _ScheduleWidgetState extends State<ScheduleWidget> {
         "end": endTime.format(context),
       });
 
+      // Save the finalized schedules to the parent widget
+      widget.onSave(schedules);
+
       // Reset inputs for a new schedule
       selectedDays = List.filled(7, false);
       startTime = TimeOfDay(hour: 7, minute: 0);
@@ -51,11 +65,10 @@ class _ScheduleWidgetState extends State<ScheduleWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Schedule Picker")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
+    return SizedBox(
+        width: 400,
+        height: 400,
+      child: Column(
           children: [
             // Day Selector
             Row(
@@ -88,7 +101,7 @@ class _ScheduleWidgetState extends State<ScheduleWidget> {
                   .toList(),
             ),
             SizedBox(height: 16),
-
+        
             // Time Pickers
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -114,14 +127,14 @@ class _ScheduleWidgetState extends State<ScheduleWidget> {
               ],
             ),
             SizedBox(height: 16),
-
+        
             // Add Hours Button
             ElevatedButton(
               onPressed: _addHours,
               child: Text("ADD HOURS"),
             ),
             SizedBox(height: 16),
-
+        
             // Display Finalized Schedules with Delete Button
             Expanded(
               child: ListView.builder(
@@ -148,7 +161,6 @@ class _ScheduleWidgetState extends State<ScheduleWidget> {
             ),
           ],
         ),
-      ),
     );
   }
 }
