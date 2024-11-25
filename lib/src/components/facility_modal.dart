@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:toastification/toastification.dart';
 import 'package:uni_camp/src/ui/information_row.dart';
 import 'package:intl/intl.dart';
 import 'package:uni_camp/src/ui/facility_container.dart';
 import 'package:uni_camp/src/ui/open_hours.dart';
 import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FacilityModal extends StatefulWidget {
   const FacilityModal({
@@ -23,7 +25,66 @@ class FacilityModal extends StatefulWidget {
 }
 
 class _FacilityModal extends State<FacilityModal> {
-  final FlutterCarouselController buttonCarouselController = FlutterCarouselController();
+  final FlutterCarouselController buttonCarouselController =
+      FlutterCarouselController();
+
+  // Function to delete facility from Firestore
+  Future<void> deleteFacility(String facilityId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('facilities')
+          .doc(facilityId)
+          .delete();
+      toastification.show(
+        context: context,
+        title: const Text('Facility Successfully Deleted!'),
+        style: ToastificationStyle.flatColored,
+        type: ToastificationType.success,
+        alignment: Alignment.topCenter,
+        autoCloseDuration: const Duration(seconds: 3),
+      );
+      Navigator.of(context).pop();
+    } catch (e) {
+      toastification.show(
+        context: context,
+        title: const Text('An error occurred!'),
+        style: ToastificationStyle.flatColored,
+        type: ToastificationType.error,
+        alignment: Alignment.topCenter,
+        autoCloseDuration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+  //Confirmation dialog
+  Future<void> showDeleteConfirmationDialog(String facilityId) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: const Text(
+              'Are you sure you want to delete this facility? This action cannot be undone.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                deleteFacility(facilityId);
+                Navigator.of(context).pop();
+              },
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,13 +127,16 @@ class _FacilityModal extends State<FacilityModal> {
                                   _showFullScreenImage(context, imageUrl);
                                 },
                                 child: Image.network(
-                                  imageUrl ?? 'https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL',
+                                  imageUrl ??
+                                      'https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL',
                                   fit: BoxFit.cover,
                                   width: double.infinity,
                                   height: 200,
-                                  loadingBuilder: (context, child, loadingProgress) {
+                                  loadingBuilder:
+                                      (context, child, loadingProgress) {
                                     if (loadingProgress == null) return child;
-                                    return const Center(child: CircularProgressIndicator());
+                                    return const Center(
+                                        child: CircularProgressIndicator());
                                   },
                                   errorBuilder: (context, error, stackTrace) {
                                     return const Center(
@@ -89,8 +153,7 @@ class _FacilityModal extends State<FacilityModal> {
                         : [
                             GestureDetector(
                               onTap: () {
-                                _showFullScreenImage(
-                                    context,
+                                _showFullScreenImage(context,
                                     'https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL');
                               },
                               child: Image.network(
@@ -118,7 +181,8 @@ class _FacilityModal extends State<FacilityModal> {
                     top: 0,
                     bottom: 0,
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_forward, color: Colors.white),
+                      icon:
+                          const Icon(Icons.arrow_forward, color: Colors.white),
                       onPressed: () {
                         buttonCarouselController.nextPage();
                       },
@@ -221,14 +285,24 @@ class _FacilityModal extends State<FacilityModal> {
                   children: [
                     ElevatedButton(
                       onPressed: () {
-                        widget.isEditing(
-                          widget.selectedPin
-                        );
+                        widget.isEditing(widget.selectedPin);
                       },
                       style: ButtonStyle(
                         fixedSize: WidgetStateProperty.all(const Size(140, 35)),
                       ),
                       child: const Text('Edit'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (widget.selectedPin != null) {
+                          showDeleteConfirmationDialog(
+                              widget.selectedPin!['id']);
+                        }
+                      },
+                      style: ButtonStyle(
+                        fixedSize: WidgetStateProperty.all(const Size(140, 35)),
+                      ),
+                      child: const Text('Delete'),
                     ),
                   ],
                 ),
@@ -248,16 +322,9 @@ void _showFullScreenImage(BuildContext context, String imageUrl) {
       return Dialog(
         backgroundColor: Colors.black.withOpacity(0.9),
         child: Center(
-          child: GestureDetector(
-            onTap: () {
-              Navigator.of(context).pop();
-            },
-            child: Image.network(
-              imageUrl,
-              fit: BoxFit.contain,
-              width: double.infinity,
-              height: double.infinity,
-            ),
+          child: Image.network(
+            imageUrl,
+            fit: BoxFit.contain,
           ),
         ),
       );

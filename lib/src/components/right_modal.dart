@@ -174,7 +174,10 @@ class _RightModalState extends State<RightModal> {
                             fontWeight: FontWeight.bold,
                           )),
                       const SizedBox(height: 5),
-                      const Text('Add a new facility to the map',
+                      Text(
+                          widget.isEditing['isEditing']
+                              ? 'Update facility to the map'
+                              : 'Add a new facility to the map',
                           style: TextStyle(
                             fontSize: 12,
                             color: Color.fromARGB(255, 109, 109, 109),
@@ -592,7 +595,6 @@ class _RightModalState extends State<RightModal> {
                                                 );
                                                 return;
                                               }
-
                                               // Update the data in Firestore
                                               await FirebaseFirestore.instance
                                                   .collection('facilities')
@@ -620,7 +622,6 @@ class _RightModalState extends State<RightModal> {
                                                 'updated_at': DateTime.now(),
                                               });
 
-                                              // Success Toast
                                               toastification.show(
                                                 context: context,
                                                 title: const Text(
@@ -636,7 +637,6 @@ class _RightModalState extends State<RightModal> {
                                             } else {
                                               print('Adding Facility');
 
-                                              // Prepare the form data for a new facility
                                               Map<String, dynamic> formData = {
                                                 'name':
                                                     facilityNameController.text,
@@ -679,7 +679,6 @@ class _RightModalState extends State<RightModal> {
                                               print(
                                                   'New Facility ID: ${docRef.id}');
 
-                                              // Success Toast
                                               toastification.show(
                                                 context: context,
                                                 title: const Text(
@@ -694,15 +693,14 @@ class _RightModalState extends State<RightModal> {
                                               );
                                             }
 
-                                            widget
-                                                .onCancel(); // Call onCancel after operation is successful
+                                            widget.onCancel();
                                           } catch (e) {
                                             print("Error: $e");
 
                                             toastification.show(
                                               context: context,
                                               title: const Text(
-                                                  'An error occurred!'),
+                                                  'Failed to delete facility!'),
                                               style: ToastificationStyle
                                                   .flatColored,
                                               type: ToastificationType.error,
