@@ -555,19 +555,19 @@ class _RightModalState extends State<RightModal> {
                                               user?.displayName ??
                                                   'Unknown User';
 
-                                          print(
-                                              'Facility Name: ${facilityNameController.text}');
-                                          print(
-                                              'Description: ${descriptionController.text}');
-                                          print('Open Hours: $schedules');
-                                          print('Category: $selectedCategory');
-                                          print('Building: $selectedBuilding');
-                                          print(
-                                              'Contact Email: ${emailController.text}');
-                                          print(
-                                              'Contact Number: ${contactNumberController.text}');
-                                          print(
-                                              'Selected Pin: ${widget.selectedPin.latitude}, ${widget.selectedPin.longitude}');
+                                          // print(
+                                          //     'Facility Name: ${facilityNameController.text}');
+                                          // print(
+                                          //     'Description: ${descriptionController.text}');
+                                          // print('Open Hours: $schedules');
+                                          // print('Category: $selectedCategory');
+                                          // print('Building: $selectedBuilding');
+                                          // print(
+                                          //     'Contact Email: ${emailController.text}');
+                                          // print(
+                                          //     'Contact Number: ${contactNumberController.text}');
+                                          // print(
+                                          //     'Selected Pin: ${widget.selectedPin.latitude}, ${widget.selectedPin.longitude}');
                                           // print('Images: $imageBytes');
 
                                           if (widget.isEditing['isEditing']) {
@@ -590,40 +590,42 @@ class _RightModalState extends State<RightModal> {
                                             // });
                                           } else {
                                             print('Adding Facility');
-                                          // Map<String, dynamic> formData = {
-                                          //   'name': facilityNameController.text,
-                                          //   'description':
-                                          //       descriptionController.text,
-                                          //   'openHours': schedules,
-                                          //   'category': selectedCategory,
-                                          //   'building': selectedBuilding,
-                                          //   'contact_details': {
-                                          //     'contact_email':
-                                          //         emailController.text,
-                                          //     'contact_number':
-                                          //         contactNumberController.text,
-                                          //   },
-                                          //   'selectedPin': {
-                                          //     'latitude':
-                                          //         widget.selectedPin.latitude,
-                                          //     'longitude':
-                                          //         widget.selectedPin.longitude,
-                                          //   },
-                                          //   'timestamp':
-                                          //       FieldValue.serverTimestamp(),
-                                          //   'added by': userName,
-                                          // };
+                                            Map<String, dynamic> formData = {
+                                              'name': facilityNameController.text,
+                                              'description':
+                                                  descriptionController.text,
+                                              'openHours': schedules,
+                                              'category': selectedCategory,
+                                              'building': selectedBuilding,
+                                              'contact_details': {
+                                                'contact_email':
+                                                    emailController.text,
+                                                'contact_number':
+                                                    contactNumberController.text,
+                                              },
+                                              'selectedPin': {
+                                                'latitude':
+                                                    widget.selectedPin.latitude,
+                                                'longitude':
+                                                    widget.selectedPin.longitude,
+                                              },
+                                              'timestamp':
+                                                  FieldValue.serverTimestamp(),
+                                              'added_by': userName,
+                                              'created_at': DateTime.now(),
+                                              'updated_at': DateTime.now(),
+                                            };
 
-                                          // if (imageBytes.isNotEmpty) {
-                                          //   formData['images'] = imageBytes;
-                                          // }
+                                            if (imageBytes.isNotEmpty) {
+                                              formData['images'] = imageBytes;
+                                            }
 
-                                          // // Save to Firestore
-                                          // await FirebaseFirestore.instance
-                                          //     .collection('facilities')
-                                          //     .add(formData);
+                                            // Save to Firestore
+                                            await FirebaseFirestore.instance
+                                                .collection('facilities')
+                                                .add(formData);
 
-                                          }
+                                            }
 
                                           toastification.show(
                                             // ignore: use_build_context_synchronously

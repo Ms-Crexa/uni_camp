@@ -58,7 +58,7 @@ class _FacilityModal extends State<FacilityModal> {
                       enableInfiniteScroll: true,
                       controller: buttonCarouselController,
                     ),
-                    items: widget.selectedPin?['images'] != null
+                    items: widget.selectedPin?['images'].isNotEmpty
                         ? widget.selectedPin!['images']
                             .map<Widget>(
                               (imageUrl) => GestureDetector(
@@ -66,7 +66,7 @@ class _FacilityModal extends State<FacilityModal> {
                                   _showFullScreenImage(context, imageUrl);
                                 },
                                 child: Image.network(
-                                  imageUrl,
+                                  imageUrl ?? 'https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL',
                                   fit: BoxFit.cover,
                                   width: double.infinity,
                                   height: 200,

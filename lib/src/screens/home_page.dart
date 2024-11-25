@@ -133,7 +133,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           "email": contactDetails['contact_email'] ?? "no contacts available",
           "number": contactDetails['contact_number'] ?? "no contacts available",
           "openHours": data['openHours'] ?? data['open_hours'] ?? "Not specified",
-          "images": data['images'] as List<dynamic>,
+          "images": data['images'] != null ? data['images'] as List<dynamic> : [],
           "timestamp": data['timestamp'] ?? "No timestamp available",
           "created_at": data['created_at'] ?? "No created at available",
           "updated_at": data['updated_at'] ?? "No updated at available",
