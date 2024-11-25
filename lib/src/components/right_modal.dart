@@ -91,18 +91,22 @@ class _RightModalState extends State<RightModal> {
     if (widget.isEditing['isEditing'] == true) {
       // If isEditing is available, populate the form fields
       setState(() {
-        facilityNameController.text = widget.isEditing['data']['name']; // string
-        descriptionController.text = widget.isEditing['data']['description']; // string
+        facilityNameController.text =
+            widget.isEditing['data']['name']; // string
+        descriptionController.text =
+            widget.isEditing['data']['description']; // string
         // schedules = widget.isEditing['data']['openHours']; // list
-        selectedCategory = widget.isEditing['data']['category']; // string (drop dowm)
-        selectedBuilding = widget.isEditing['data']['building']; // string (drop down)
+        selectedCategory =
+            widget.isEditing['data']['category']; // string (drop dowm)
+        selectedBuilding =
+            widget.isEditing['data']['building']; // string (drop down)
         emailController.text = widget.isEditing['data']['email']; // string
-        contactNumberController.text = widget.isEditing['data']['number']; // string
+        contactNumberController.text =
+            widget.isEditing['data']['number']; // string
         // save the network image to the imageBytes
 
         // imageBytes = widget.isEditing['data']['images']; // image
       });
-
     } else {
       // If temptData is available, populate the form fields
       if (widget.temptData != null) {
@@ -155,12 +159,15 @@ class _RightModalState extends State<RightModal> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding:
-                      const EdgeInsets.only(top: 20, left: 20, right: 20, bottom: 10),
+                  padding: const EdgeInsets.only(
+                      top: 20, left: 20, right: 20, bottom: 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(widget.isEditing['isEditing'] ? 'Updating ${widget.isEditing['data']['name']}' :'New Facility',
+                      Text(
+                          widget.isEditing['isEditing']
+                              ? 'Updating ${widget.isEditing['data']['name']}'
+                              : 'New Facility',
                           style: const TextStyle(
                             fontSize: 20,
                             color: Color.fromARGB(255, 0, 84, 153),
@@ -441,18 +448,21 @@ class _RightModalState extends State<RightModal> {
                                 child: const Text('Upload Image'),
                               ),
                               // Display all the images in a carousel
-                              if (imageBytes.isEmpty && widget.isEditing['isEditing'])
+                              if (imageBytes.isEmpty &&
+                                  widget.isEditing['isEditing'])
                                 SizedBox(
                                   height: 100,
                                   child: ListView.builder(
                                     scrollDirection: Axis.horizontal,
-                                    itemCount: widget.isEditing['data']['images'].length,
+                                    itemCount: widget
+                                        .isEditing['data']['images'].length,
                                     itemBuilder: (context, index) {
                                       return Padding(
                                         padding:
                                             const EdgeInsets.only(right: 10),
                                         child: Image.network(
-                                          widget.isEditing['data']['images'][index],
+                                          widget.isEditing['data']['images']
+                                              [index],
                                           width: 100,
                                           height: 100,
                                           fit: BoxFit.cover,
@@ -555,92 +565,152 @@ class _RightModalState extends State<RightModal> {
                                               user?.displayName ??
                                                   'Unknown User';
 
-                                          // print(
-                                          //     'Facility Name: ${facilityNameController.text}');
-                                          // print(
-                                          //     'Description: ${descriptionController.text}');
-                                          // print('Open Hours: $schedules');
-                                          // print('Category: $selectedCategory');
-                                          // print('Building: $selectedBuilding');
-                                          // print(
-                                          //     'Contact Email: ${emailController.text}');
-                                          // print(
-                                          //     'Contact Number: ${contactNumberController.text}');
-                                          // print(
-                                          //     'Selected Pin: ${widget.selectedPin.latitude}, ${widget.selectedPin.longitude}');
-                                          // print('Images: $imageBytes');
+                                          try {
+                                            if (widget.isEditing['isEditing']) {
+                                              print('Editing Facility');
 
-                                          if (widget.isEditing['isEditing']) {
-                                            print('Editing Facility');
-                                            // Update the data in Firestore
-                                            // await FirebaseFirestore.instance
-                                            //     .collection('facilities')
-                                            //     .doc(widget.isEditing?['id'])
-                                            //     .update({
-                                            //   'facilityName': facilityNameController.text,
-                                            //   'description': descriptionController.text,
-                                            //   'openHours': schedules,
-                                            //   'category': selectedCategory,
-                                            //   'building': selectedBuilding,
-                                            //   'contactEmail': emailController.text,
-                                            //   'contactNumber': contactNumberController.text,
-                                            //   'image': imageBytes,
-                                            //   'selectedPin': widget.selectedPin,
-                                            //   'edited by': userName,
-                                            // });
-                                          } else {
-                                            print('Adding Facility');
-                                            Map<String, dynamic> formData = {
-                                              'name': facilityNameController.text,
-                                              'description':
-                                                  descriptionController.text,
-                                              'openHours': schedules,
-                                              'category': selectedCategory,
-                                              'building': selectedBuilding,
-                                              'contact_details': {
-                                                'contact_email':
-                                                    emailController.text,
-                                                'contact_number':
-                                                    contactNumberController.text,
-                                              },
-                                              'selectedPin': {
-                                                'latitude':
+                                              // Ensure you have a valid document ID
+                                              String? facilityId =
+                                                  widget.isEditing['id']?['id'];
+
+                                              if (facilityId == null) {
+                                                print(
+                                                    'Error: No valid facility ID found for editing');
+                                                toastification.show(
+                                                  context: context,
+                                                  title: const Text(
+                                                      'Failed to Update Facility. ID missing!'),
+                                                  style: ToastificationStyle
+                                                      .flatColored,
+                                                  type:
+                                                      ToastificationType.error,
+                                                  alignment:
+                                                      Alignment.topCenter,
+                                                  autoCloseDuration:
+                                                      const Duration(
+                                                          seconds: 3),
+                                                );
+                                                return;
+                                              }
+
+                                              // Update the data in Firestore
+                                              await FirebaseFirestore.instance
+                                                  .collection('facilities')
+                                                  .doc(facilityId)
+                                                  .update({
+                                                'name':
+                                                    facilityNameController.text,
+                                                'description':
+                                                    descriptionController.text,
+                                                'openHours': schedules,
+                                                'category': selectedCategory,
+                                                'building': selectedBuilding,
+                                                'contact_details': {
+                                                  'contact_email':
+                                                      emailController.text,
+                                                  'contact_number':
+                                                      contactNumberController
+                                                          .text,
+                                                },
+                                                'position': GeoPoint(
                                                     widget.selectedPin.latitude,
-                                                'longitude':
-                                                    widget.selectedPin.longitude,
-                                              },
-                                              'timestamp':
-                                                  FieldValue.serverTimestamp(),
-                                              'added_by': userName,
-                                              'created_at': DateTime.now(),
-                                              'updated_at': DateTime.now(),
-                                            };
+                                                    widget
+                                                        .selectedPin.longitude),
+                                                'edited_by': userName,
+                                                'updated_at': DateTime.now(),
+                                              });
 
-                                            if (imageBytes.isNotEmpty) {
-                                              formData['images'] = imageBytes;
+                                              // Success Toast
+                                              toastification.show(
+                                                context: context,
+                                                title: const Text(
+                                                    'Facility Successfully Updated!'),
+                                                style: ToastificationStyle
+                                                    .flatColored,
+                                                type:
+                                                    ToastificationType.success,
+                                                alignment: Alignment.topCenter,
+                                                autoCloseDuration:
+                                                    const Duration(seconds: 3),
+                                              );
+                                            } else {
+                                              print('Adding Facility');
+
+                                              // Prepare the form data for a new facility
+                                              Map<String, dynamic> formData = {
+                                                'name':
+                                                    facilityNameController.text,
+                                                'description':
+                                                    descriptionController.text,
+                                                'openHours': schedules,
+                                                'category': selectedCategory,
+                                                'building': selectedBuilding,
+                                                'contact_details': {
+                                                  'contact_email':
+                                                      emailController.text,
+                                                  'contact_number':
+                                                      contactNumberController
+                                                          .text,
+                                                },
+                                                'position': {
+                                                  'latitude': widget
+                                                      .selectedPin.latitude,
+                                                  'longitude': widget
+                                                      .selectedPin.longitude,
+                                                },
+                                                'timestamp': FieldValue
+                                                    .serverTimestamp(),
+                                                'added_by': userName,
+                                                'created_at': DateTime.now(),
+                                                'updated_at': DateTime.now(),
+                                              };
+
+                                              if (imageBytes.isNotEmpty) {
+                                                formData['images'] = imageBytes;
+                                              }
+
+                                              // Save to Firestore
+                                              var docRef =
+                                                  await FirebaseFirestore
+                                                      .instance
+                                                      .collection('facilities')
+                                                      .add(formData);
+
+                                              print(
+                                                  'New Facility ID: ${docRef.id}');
+
+                                              // Success Toast
+                                              toastification.show(
+                                                context: context,
+                                                title: const Text(
+                                                    'Facility Successfully Added!'),
+                                                style: ToastificationStyle
+                                                    .flatColored,
+                                                type:
+                                                    ToastificationType.success,
+                                                alignment: Alignment.topCenter,
+                                                autoCloseDuration:
+                                                    const Duration(seconds: 3),
+                                              );
                                             }
 
-                                            // Save to Firestore
-                                            await FirebaseFirestore.instance
-                                                .collection('facilities')
-                                                .add(formData);
+                                            widget
+                                                .onCancel(); // Call onCancel after operation is successful
+                                          } catch (e) {
+                                            print("Error: $e");
 
-                                            }
-
-                                          toastification.show(
-                                            // ignore: use_build_context_synchronously
-                                            context: context,
-                                            title: const Text(
-                                                'Facility Successfully Saved!'),
-                                            style:
-                                                ToastificationStyle.flatColored,
-                                            type: ToastificationType.success,
-                                            alignment: Alignment.topCenter,
-                                            autoCloseDuration:
-                                                const Duration(seconds: 3),
-                                          );
-
-                                          widget.onCancel();
+                                            toastification.show(
+                                              context: context,
+                                              title: const Text(
+                                                  'An error occurred!'),
+                                              style: ToastificationStyle
+                                                  .flatColored,
+                                              type: ToastificationType.error,
+                                              alignment: Alignment.topCenter,
+                                              autoCloseDuration:
+                                                  const Duration(seconds: 3),
+                                            );
+                                          }
                                         }
                                       },
                                       child: const Text('Submit',

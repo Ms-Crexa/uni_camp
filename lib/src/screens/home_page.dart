@@ -90,24 +90,20 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     try {
       final querySnapshot =
           await FirebaseFirestore.instance.collection('facilities').get();
+
       final List<Map<String, dynamic>> fetchedData =
           querySnapshot.docs.map((doc) {
         final data = doc.data();
-        final selectedPin = data['selectedPin'];
-        final contactDetails = data['contact_details'] ?? {};
+        final id = doc.id;
 
-        // final latitude = selectedPin != null && selectedPin['latitude'] != null
-        //     ? selectedPin['latitude']
-        //     : 0.0;
-        // final longitude =
-        //     selectedPin != null && selectedPin['longitude'] != null
-        //         ? selectedPin['longitude']
-        //         : 0.0;
+        final selectedPin = data['position'];
+        final contactDetails = data['contact_details'] ?? {};
 
         final double latitude;
         final double longitude;
 
         if (selectedPin != null &&
+            selectedPin is Map<String, dynamic> &&
             selectedPin['latitude'] != null &&
             selectedPin['longitude'] != null) {
           latitude = selectedPin['latitude'];
@@ -124,6 +120,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         final position = LatLng(latitude, longitude);
 
         return {
+          "id": id,
           "position": position,
           "added_by": data['added by'] ?? "Unknown",
           "building": data['building'] ?? "Unknown",
@@ -132,8 +129,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           "name": data['name'] ?? 'Unknown',
           "email": contactDetails['contact_email'] ?? "no contacts available",
           "number": contactDetails['contact_number'] ?? "no contacts available",
-          "openHours": data['openHours'] ?? data['open_hours'] ?? "Not specified",
-          "images": data['images'] != null ? data['images'] as List<dynamic> : [],
+          "openHours":
+              data['openHours'] ?? data['open_hours'] ?? "Not specified",
+          "images":
+              data['images'] != null ? data['images'] as List<dynamic> : [],
           "timestamp": data['timestamp'] ?? "No timestamp available",
           "created_at": data['created_at'] ?? "No created at available",
           "updated_at": data['updated_at'] ?? "No updated at available",
@@ -152,6 +151,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     setState(() {
       selectedPin = pinData;
     });
+
+    print("Selected Pin ID: ${pinData['id']}");
   }
 
   Future<void> signOut(BuildContext context) async {
@@ -324,7 +325,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             setState(() {
                               newLocation = true;
                               selectedCoordinates = selectedPin!['position'];
-                              isEditing = {'isEditing': true, 'data': value};
+                              isEditing = {
+                                'isEditing': true,
+                                'data': value,
+                                'id': value
+                              };
                             });
                           },
                         )
