@@ -1,11 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:toastification/toastification.dart';
 import 'dart:typed_data';
+import 'package:image/image.dart' as img;
 
 import 'package:uni_camp/src/components/open_hours_form.dart';
 
@@ -30,6 +32,8 @@ class RightModal extends StatefulWidget {
 
 class _RightModalState extends State<RightModal> {
   final _formKey = GlobalKey<FormState>();
+  bool isLoading = false;
+  bool isVisible = true;
 
   List<Uint8List?> imageBytes = [];
   final TextEditingController facilityNameController = TextEditingController();
@@ -129,6 +133,119 @@ class _RightModalState extends State<RightModal> {
     }
   }
 
+  Uint8List compressImage(Uint8List originalImage) {
+    final image = img.decodeImage(originalImage);
+    return Uint8List.fromList(img.encodeJpg(image!, quality: 80));
+  }
+
+  Future<void> saveFacility() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    User? user = FirebaseAuth.instance.currentUser;
+    String? userName = user?.displayName ?? 'Unknown User';
+    List<String> uploadedImageUrls = [];
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      if (imageBytes.isNotEmpty) {
+        print('Starting image upload...');
+        uploadedImageUrls = await Future.wait(imageBytes.map((image) async {
+          try {
+            String fileName =
+                'images/${DateTime.now().millisecondsSinceEpoch}.jpg';
+            final uploadTask = await FirebaseStorage.instance
+                .ref(fileName)
+                .putData(compressImage(image!));
+            print('Image uploaded successfully.');
+            return await uploadTask.ref.getDownloadURL();
+          } catch (e) {
+            print('Error uploading image: $e');
+            throw Exception('Failed to upload image.');
+          }
+        }));
+      }
+
+      if (widget.isEditing['isEditing']) {
+        print('Editing facility...');
+        String? facilityId = widget.isEditing['id']?['id'];
+        if (facilityId == null) throw Exception('No facility ID found.');
+
+        if (widget.isEditing['data']['images'] != null) {
+          print('Deleting old images...');
+          for (var oldImage in widget.isEditing['data']['images']) {
+            await FirebaseStorage.instance.refFromURL(oldImage).delete();
+          }
+        }
+
+        await FirebaseFirestore.instance
+            .collection('facilities')
+            .doc(facilityId)
+            .update({
+          'name': facilityNameController.text,
+          'description': descriptionController.text,
+          'category': selectedCategory,
+          'building': selectedBuilding,
+          'contact_details': {
+            'contact_email': emailController.text,
+            'contact_number': contactNumberController.text,
+          },
+          'position': GeoPoint(
+              widget.selectedPin.latitude, widget.selectedPin.longitude),
+          'edited_by': userName,
+          'updated_at': DateTime.now(),
+          'images': uploadedImageUrls,
+          'Visibility': isVisible,
+        });
+
+        toastification.show(
+          context: context,
+          title: const Text('Facility successfully updated!'),
+          type: ToastificationType.success,
+        );
+      } else {
+        print('Adding new facility...');
+        await FirebaseFirestore.instance.collection('facilities').add({
+          'name': facilityNameController.text,
+          'description': descriptionController.text,
+          'category': selectedCategory,
+          'building': selectedBuilding,
+          'contact_details': {
+            'contact_email': emailController.text,
+            'contact_number': contactNumberController.text,
+          },
+          'position': GeoPoint(
+              widget.selectedPin.latitude, widget.selectedPin.longitude),
+          'added_by': userName,
+          'created_at': DateTime.now(),
+          'updated_at': DateTime.now(),
+          'images': uploadedImageUrls,
+          'Visibility': isVisible,
+        });
+
+        toastification.show(
+          context: context,
+          title: const Text('Facility successfully added!'),
+          type: ToastificationType.success,
+        );
+      }
+      widget.onCancel();
+    } catch (e) {
+      toastification.show(
+        context: context,
+        title: const Text('Failed to save facility!'),
+        type: ToastificationType.error,
+      );
+      print('Error: $e');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Positioned(
@@ -178,7 +295,7 @@ class _RightModalState extends State<RightModal> {
                           widget.isEditing['isEditing']
                               ? 'Update facility to the map'
                               : 'Add a new facility to the map',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 12,
                             color: Color.fromARGB(255, 109, 109, 109),
                             fontWeight: FontWeight.w100,
@@ -524,6 +641,24 @@ class _RightModalState extends State<RightModal> {
                             ],
                           ),
                         ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              Checkbox(
+                                value: isVisible,
+                                onChanged: (value) {
+                                  setState(() {
+                                    isVisible = value ?? true;
+                                  });
+                                },
+                                activeColor: Colors.black,
+                              ),
+                              Text('Visible to others'),
+                            ],
+                          ),
+                        ),
 
                         Column(
                           children: [
@@ -550,171 +685,25 @@ class _RightModalState extends State<RightModal> {
                                   const SizedBox(width: 10),
                                   // store in firebase
                                   TextButton(
-                                      style: ButtonStyle(
-                                        fixedSize: WidgetStateProperty.all(
-                                            const Size(100, 35)),
-                                        backgroundColor:
-                                            WidgetStateProperty.all(
-                                                const Color.fromARGB(
-                                                    255, 44, 97, 138)),
+                                    style: ButtonStyle(
+                                      fixedSize: MaterialStateProperty.all(
+                                          const Size(100, 35)),
+                                      backgroundColor:
+                                          MaterialStateProperty.all(
+                                        const Color.fromARGB(255, 44, 97, 138),
                                       ),
-                                      onPressed: () async {
-                                        if (_formKey.currentState?.validate() ??
-                                            false) {
-                                          // Get current user
-                                          User? user =
-                                              FirebaseAuth.instance.currentUser;
-                                          String? userName =
-                                              user?.displayName ??
-                                                  'Unknown User';
-
-                                          try {
-                                            if (widget.isEditing['isEditing']) {
-                                              print('Editing Facility');
-
-                                              // Ensure you have a valid document ID
-                                              String? facilityId =
-                                                  widget.isEditing['id']?['id'];
-
-                                              if (facilityId == null) {
-                                                print(
-                                                    'Error: No valid facility ID found for editing');
-                                                toastification.show(
-                                                  context: context,
-                                                  title: const Text(
-                                                      'Failed to Update Facility. ID missing!'),
-                                                  style: ToastificationStyle
-                                                      .flatColored,
-                                                  type:
-                                                      ToastificationType.error,
-                                                  alignment:
-                                                      Alignment.topCenter,
-                                                  autoCloseDuration:
-                                                      const Duration(
-                                                          seconds: 3),
-                                                );
-                                                return;
-                                              }
-                                              // Update the data in Firestore
-                                              await FirebaseFirestore.instance
-                                                  .collection('facilities')
-                                                  .doc(facilityId)
-                                                  .update({
-                                                'name':
-                                                    facilityNameController.text,
-                                                'description':
-                                                    descriptionController.text,
-                                                'openHours': schedules,
-                                                'category': selectedCategory,
-                                                'building': selectedBuilding,
-                                                'contact_details': {
-                                                  'contact_email':
-                                                      emailController.text,
-                                                  'contact_number':
-                                                      contactNumberController
-                                                          .text,
-                                                },
-                                                'position': GeoPoint(
-                                                    widget.selectedPin.latitude,
-                                                    widget
-                                                        .selectedPin.longitude),
-                                                'edited_by': userName,
-                                                'updated_at': DateTime.now(),
-                                              });
-
-                                              toastification.show(
-                                                context: context,
-                                                title: const Text(
-                                                    'Facility Successfully Updated!'),
-                                                style: ToastificationStyle
-                                                    .flatColored,
-                                                type:
-                                                    ToastificationType.success,
-                                                alignment: Alignment.topCenter,
-                                                autoCloseDuration:
-                                                    const Duration(seconds: 3),
-                                              );
-                                            } else {
-                                              print('Adding Facility');
-
-                                              Map<String, dynamic> formData = {
-                                                'name':
-                                                    facilityNameController.text,
-                                                'description':
-                                                    descriptionController.text,
-                                                'openHours': schedules,
-                                                'category': selectedCategory,
-                                                'building': selectedBuilding,
-                                                'contact_details': {
-                                                  'contact_email':
-                                                      emailController.text,
-                                                  'contact_number':
-                                                      contactNumberController
-                                                          .text,
-                                                },
-                                                'position': {
-                                                  'latitude': widget
-                                                      .selectedPin.latitude,
-                                                  'longitude': widget
-                                                      .selectedPin.longitude,
-                                                },
-                                                'timestamp': FieldValue
-                                                    .serverTimestamp(),
-                                                'added_by': userName,
-                                                'created_at': DateTime.now(),
-                                                'updated_at': DateTime.now(),
-                                              };
-
-                                              if (imageBytes.isNotEmpty) {
-                                                formData['images'] = imageBytes;
-                                              }
-
-                                              // Save to Firestore
-                                              var docRef =
-                                                  await FirebaseFirestore
-                                                      .instance
-                                                      .collection('facilities')
-                                                      .add(formData);
-
-                                              print(
-                                                  'New Facility ID: ${docRef.id}');
-
-                                              toastification.show(
-                                                context: context,
-                                                title: const Text(
-                                                    'Facility Successfully Added!'),
-                                                style: ToastificationStyle
-                                                    .flatColored,
-                                                type:
-                                                    ToastificationType.success,
-                                                alignment: Alignment.topCenter,
-                                                autoCloseDuration:
-                                                    const Duration(seconds: 3),
-                                              );
-                                            }
-
-                                            widget.onCancel();
-                                          } catch (e) {
-                                            print("Error: $e");
-
-                                            toastification.show(
-                                              context: context,
-                                              title: const Text(
-                                                  'Failed to delete facility!'),
-                                              style: ToastificationStyle
-                                                  .flatColored,
-                                              type: ToastificationType.error,
-                                              alignment: Alignment.topCenter,
-                                              autoCloseDuration:
-                                                  const Duration(seconds: 3),
-                                            );
-                                          }
-                                        }
-                                      },
-                                      child: const Text('Submit',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                          ))),
+                                    ),
+                                    onPressed: () async {
+                                      // Call the saveFacility function
+                                      await saveFacility();
+                                    },
+                                    child: const Text(
+                                      'Submit',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -724,6 +713,15 @@ class _RightModalState extends State<RightModal> {
                     ),
                   ),
                 ),
+                if (isLoading)
+                  Positioned.fill(
+                    child: Container(
+                      color: Colors.black.withOpacity(0.5),
+                      child: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

@@ -13,8 +13,8 @@ class OpenHoursForm extends StatefulWidget {
 
 class _OpenHoursForm extends State<OpenHoursForm> {
   List<bool> selectedDays = List.filled(7, false); // For Su, M, T, W, Th, F, Sa
-  TimeOfDay startTime = TimeOfDay(hour: 7, minute: 0);
-  TimeOfDay endTime = TimeOfDay(hour: 23, minute: 0);
+  TimeOfDay startTime = const TimeOfDay(hour: 7, minute: 0);
+  TimeOfDay endTime = const TimeOfDay(hour: 23, minute: 0);
   List<Map<String, dynamic>> schedules = [];
 
   @override
@@ -53,8 +53,8 @@ class _OpenHoursForm extends State<OpenHoursForm> {
 
       // Reset inputs for a new schedule
       selectedDays = List.filled(7, false);
-      startTime = TimeOfDay(hour: 7, minute: 0);
-      endTime = TimeOfDay(hour: 23, minute: 0);
+      startTime = const TimeOfDay(hour: 7, minute: 0);
+      endTime = const TimeOfDay(hour: 23, minute: 0);
     });
   }
 
@@ -101,7 +101,7 @@ class _OpenHoursForm extends State<OpenHoursForm> {
                 )
                 .toList(),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
 
           // Time Pickers
           Row(
@@ -109,7 +109,7 @@ class _OpenHoursForm extends State<OpenHoursForm> {
             children: [
               Column(
                 children: [
-                  Text("Start Time"),
+                  const Text("Start Time"),
                   ElevatedButton(
                     onPressed: () => _selectTime(context, true),
                     child: Text(startTime.format(context)),
@@ -118,7 +118,7 @@ class _OpenHoursForm extends State<OpenHoursForm> {
               ),
               Column(
                 children: [
-                  Text("End Time"),
+                  const Text("End Time"),
                   ElevatedButton(
                     onPressed: () => _selectTime(context, false),
                     child: Text(endTime.format(context)),
@@ -127,14 +127,14 @@ class _OpenHoursForm extends State<OpenHoursForm> {
               ),
             ],
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
 
           // Add Hours Button
           ElevatedButton(
             onPressed: _addHours,
-            child: Text("ADD HOURS"),
+            child: const Text("ADD HOURS"),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
 
           // Display Finalized Schedules with Delete Button
           Expanded(
@@ -153,7 +153,7 @@ class _OpenHoursForm extends State<OpenHoursForm> {
                     "$selectedDaysStr: ${schedule["start"]} - ${schedule["end"]}",
                   ),
                   trailing: IconButton(
-                    icon: Icon(Icons.delete, color: Colors.red),
+                    icon: const Icon(Icons.delete, color: Colors.red),
                     onPressed: () => _deleteSchedule(index),
                   ),
                 );
