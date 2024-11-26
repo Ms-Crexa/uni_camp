@@ -686,10 +686,10 @@ class _RightModalState extends State<RightModal> {
                                   // store in firebase
                                   TextButton(
                                     style: ButtonStyle(
-                                      fixedSize: MaterialStateProperty.all(
+                                      fixedSize: WidgetStateProperty.all(
                                           const Size(100, 35)),
                                       backgroundColor:
-                                          MaterialStateProperty.all(
+                                          WidgetStateProperty.all(
                                         const Color.fromARGB(255, 44, 97, 138),
                                       ),
                                     ),
@@ -707,21 +707,19 @@ class _RightModalState extends State<RightModal> {
                                 ],
                               ),
                             ),
+                            if (isLoading)
+                              Container(
+                                color: Colors.black.withOpacity(0.5),
+                                child: const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              ),
                           ],
                         ),
                       ],
                     ),
                   ),
                 ),
-                if (isLoading)
-                  Positioned.fill(
-                    child: Container(
-                      color: Colors.black.withOpacity(0.5),
-                      child: const Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),
