@@ -133,10 +133,118 @@ class _RightModalState extends State<RightModal> {
     }
   }
 
-  Uint8List compressImage(Uint8List originalImage) {
-    final image = img.decodeImage(originalImage);
-    return Uint8List.fromList(img.encodeJpg(image!, quality: 80));
-  }
+  // Uint8List compressImage(Uint8List originalImage) {
+  //   final image = img.decodeImage(originalImage);
+  //   return Uint8List.fromList(img.encodeJpg(image!, quality: 80));
+  // }
+
+  // Future<void> saveFacility() async {
+  //   if (!_formKey.currentState!.validate()) return;
+
+  //   User? user = FirebaseAuth.instance.currentUser;
+  //   String? userName = user?.displayName ?? 'Unknown User';
+  //   List<String> uploadedImageUrls = [];
+
+  //   setState(() {
+  //     isLoading = true;
+  //   });
+
+  //   try {
+  //     if (imageBytes.isNotEmpty) {
+  //       print('Starting image upload...');
+  //       uploadedImageUrls = await Future.wait(imageBytes.map((image) async {
+  //         try {
+  //           String fileName =
+  //               'images/${DateTime.now().millisecondsSinceEpoch}.jpg';
+  //           final uploadTask = await FirebaseStorage.instance
+  //               .ref(fileName)
+  //               .putData(compressImage(image!));
+  //           print('Image uploaded successfully.');
+  //           return await uploadTask.ref.getDownloadURL();
+  //         } catch (e) {
+  //           print('Error uploading image: $e');
+  //           throw Exception('Failed to upload image.');
+  //         }
+  //       }));
+  //     }
+
+  //     if (widget.isEditing['isEditing']) {
+  //       print('Editing facility...');
+  //       String? facilityId = widget.isEditing['id']?['id'];
+  //       if (facilityId == null) throw Exception('No facility ID found.');
+
+  //       if (widget.isEditing['data']['images'] != null) {
+  //         print('Deleting old images...');
+  //         for (var oldImage in widget.isEditing['data']['images']) {
+  //           await FirebaseStorage.instance.refFromURL(oldImage).delete();
+  //         }
+  //       }
+
+  //       await FirebaseFirestore.instance
+  //           .collection('facilities')
+  //           .doc(facilityId)
+  //           .update({
+  //         'name': facilityNameController.text,
+  //         'description': descriptionController.text,
+  //         'category': selectedCategory,
+  //         'building': selectedBuilding,
+  //         'contact_details': {
+  //           'contact_email': emailController.text,
+  //           'contact_number': contactNumberController.text,
+  //         },
+  //         'position': GeoPoint(
+  //             widget.selectedPin.latitude, widget.selectedPin.longitude),
+  //         'edited_by': userName,
+  //         'updated_at': DateTime.now(),
+  //         'images': uploadedImageUrls,
+  //         'Visibility': isVisible,
+  //       });
+
+  //       toastification.show(
+  //         context: context,
+  //         title: const Text('Facility successfully updated!'),
+  //         type: ToastificationType.success,
+  //       );
+  //     } else {
+  //       print('Adding new facility...');
+  //       await FirebaseFirestore.instance.collection('facilities').add({
+  //         'name': facilityNameController.text,
+  //         'description': descriptionController.text,
+  //         'category': selectedCategory,
+  //         'building': selectedBuilding,
+  //         'contact_details': {
+  //           'contact_email': emailController.text,
+  //           'contact_number': contactNumberController.text,
+  //         },
+  //         'position': GeoPoint(
+  //             widget.selectedPin.latitude, widget.selectedPin.longitude),
+  //         'added_by': userName,
+  //         'created_at': DateTime.now(),
+  //         'updated_at': DateTime.now(),
+  //         'images': uploadedImageUrls,
+  //         'Visibility': isVisible,
+  //       });
+
+  //       toastification.show(
+  //         context: context,
+  //         title: const Text('Facility successfully added!'),
+  //         type: ToastificationType.success,
+  //       );
+  //     }
+  //     widget.onCancel();
+  //   } catch (e) {
+  //     toastification.show(
+  //       context: context,
+  //       title: const Text('Failed to save facility!'),
+  //       type: ToastificationType.error,
+  //     );
+  //     print('Error: $e');
+  //   } finally {
+  //     setState(() {
+  //       isLoading = false;
+  //     });
+  //   }
+  // }
 
   Future<void> saveFacility() async {
     if (!_formKey.currentState!.validate()) return;
@@ -156,9 +264,10 @@ class _RightModalState extends State<RightModal> {
           try {
             String fileName =
                 'images/${DateTime.now().millisecondsSinceEpoch}.jpg';
+            final metadata = SettableMetadata(contentType: 'image/jpeg');
             final uploadTask = await FirebaseStorage.instance
                 .ref(fileName)
-                .putData(compressImage(image!));
+                .putData(image!, metadata);
             print('Image uploaded successfully.');
             return await uploadTask.ref.getDownloadURL();
           } catch (e) {
@@ -686,10 +795,10 @@ class _RightModalState extends State<RightModal> {
                                   // store in firebase
                                   TextButton(
                                     style: ButtonStyle(
-                                      fixedSize: WidgetStateProperty.all(
+                                      fixedSize: MaterialStateProperty.all(
                                           const Size(100, 35)),
                                       backgroundColor:
-                                          WidgetStateProperty.all(
+                                          MaterialStateProperty.all(
                                         const Color.fromARGB(255, 44, 97, 138),
                                       ),
                                     ),
@@ -707,19 +816,21 @@ class _RightModalState extends State<RightModal> {
                                 ],
                               ),
                             ),
-                            if (isLoading)
-                              Container(
-                                color: Colors.black.withOpacity(0.5),
-                                child: const Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              ),
                           ],
                         ),
                       ],
                     ),
                   ),
                 ),
+                if (isLoading)
+                  Positioned.fill(
+                    child: Container(
+                      color: Colors.black.withOpacity(0.5),
+                      child: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
