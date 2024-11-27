@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -8,6 +9,8 @@ import 'package:latlong2/latlong.dart';
 import 'package:toastification/toastification.dart';
 import 'dart:typed_data';
 import 'package:image/image.dart' as img;
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:html' as html;
 
 import 'package:uni_camp/src/components/open_hours_form.dart';
 
@@ -36,6 +39,9 @@ class _RightModalState extends State<RightModal> {
   bool isVisible = true;
 
   List<Uint8List?> imageBytes = [];
+  final List<html.File> _selectedPhotos = [];
+  final bool _isUploading = false;
+  final List<String> _photoPreviewUrls = [];
   final TextEditingController facilityNameController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
@@ -85,166 +91,129 @@ class _RightModalState extends State<RightModal> {
     {'value': 'Martin Hall', 'label': 'Martin Hall'}
   ];
 
-  // if there is a temptData, set the values of the fields
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
+  Future<List<String>> _uploadPhotos() async {
+  List<String> photoUrls = [];
 
-    print(widget.isEditing['data']['images']);
+  for (html.File photo in _selectedPhotos) {
+    String fileName = '${DateTime.now().millisecondsSinceEpoch}_${photo.name}';
+    Reference storageRef = FirebaseStorage.instance.ref().child(fileName); // Without the "location_photos/" path
 
-    if (widget.isEditing['isEditing'] == true) {
-      // If isEditing is available, populate the form fields
-      setState(() {
-        facilityNameController.text =
-            widget.isEditing['data']['name']; // string
-        descriptionController.text =
-            widget.isEditing['data']['description']; // string
-        // schedules = widget.isEditing['data']['openHours']; // list
-        selectedCategory =
-            widget.isEditing['data']['category']; // string (drop dowm)
-        selectedBuilding =
-            widget.isEditing['data']['building']; // string (drop down)
-        emailController.text = widget.isEditing['data']['email']; // string
-        contactNumberController.text =
-            widget.isEditing['data']['number']; // string
-        // save the network image to the imageBytes
+    try {
+      // Create a FileReader
+      final reader = html.FileReader();
+      // Read the file as array buffer
+      reader.readAsArrayBuffer(photo);
 
-        // imageBytes = widget.isEditing['data']['images']; // image
-      });
-    } else {
-      // If temptData is available, populate the form fields
-      if (widget.temptData != null) {
-        setState(() {
-          facilityNameController.text =
-              widget.temptData?['facilityName']; // string
-          descriptionController.text =
-              widget.temptData?['description']; // string
-          schedules = widget.temptData?['openHours']; // list
-          selectedCategory =
-              widget.temptData?['category']; // string (drop dowm)
-          selectedBuilding =
-              widget.temptData?['building']; // string (drop down)
-          emailController.text = widget.temptData?['contactNumber']; // string
-          contactNumberController.text =
-              widget.temptData?['contactNumber']; // string
-          imageBytes = widget.temptData?['image']; // image
-        });
+      // Wait for the reader to complete
+      await reader.onLoadEnd.first;
+
+      // Get the result as Blob
+      final blob = html.Blob([reader.result]);
+
+      // Determine the Content-Type based on file extension (simplified example)
+      String contentType = 'application/octet-stream'; // Default content type
+      if (photo.name.endsWith('.png')) {
+        contentType = 'image/png';
+      } else if (photo.name.endsWith('.jpg') || photo.name.endsWith('.jpeg')) {
+        contentType = 'image/jpeg';
+      } else if (photo.name.endsWith('.gif')) {
+        contentType = 'image/gif';
       }
+
+      // Set the metadata with contentType
+      final metadata = SettableMetadata(
+        contentType: contentType,
+      );
+
+      // Upload the file with the metadata
+      await storageRef.putBlob(blob, metadata);
+      
+      // Get the download URL
+      String downloadUrl = await storageRef.getDownloadURL();
+      photoUrls.add(downloadUrl);
+    } catch (e) {
+      print('Error uploading photo: $e');
+      throw e;
     }
   }
 
-  // Uint8List compressImage(Uint8List originalImage) {
-  //   final image = img.decodeImage(originalImage);
-  //   return Uint8List.fromList(img.encodeJpg(image!, quality: 80));
-  // }
+  return photoUrls;
+}
 
-  // Future<void> saveFacility() async {
-  //   if (!_formKey.currentState!.validate()) return;
+  // Method to pick images for web
+  Future<void> _pickImages() async {
+    final html.FileUploadInputElement input = html.FileUploadInputElement()
+      ..accept = 'image/*'
+      ..multiple = true;
 
-  //   User? user = FirebaseAuth.instance.currentUser;
-  //   String? userName = user?.displayName ?? 'Unknown User';
-  //   List<String> uploadedImageUrls = [];
+    input.click();
 
-  //   setState(() {
-  //     isLoading = true;
-  //   });
+    await input.onChange.first;
 
-  //   try {
-  //     if (imageBytes.isNotEmpty) {
-  //       print('Starting image upload...');
-  //       uploadedImageUrls = await Future.wait(imageBytes.map((image) async {
-  //         try {
-  //           String fileName =
-  //               'images/${DateTime.now().millisecondsSinceEpoch}.jpg';
-  //           final uploadTask = await FirebaseStorage.instance
-  //               .ref(fileName)
-  //               .putData(compressImage(image!));
-  //           print('Image uploaded successfully.');
-  //           return await uploadTask.ref.getDownloadURL();
-  //         } catch (e) {
-  //           print('Error uploading image: $e');
-  //           throw Exception('Failed to upload image.');
-  //         }
-  //       }));
-  //     }
+    if (input.files != null) {
+      setState(() {
+        _selectedPhotos.addAll(input.files!);
+        // Create preview URLs for the selected images
+        toastification.show(
+          // ignore: use_build_context_synchronously
+          context: context,
+          title: const Text(
+              'Image successfully uploaded!'),
+          style: ToastificationStyle.flatColored,
+          type: ToastificationType.success,
+          alignment: Alignment.topCenter,
+          autoCloseDuration:
+              const Duration(seconds: 3),
+        );
+        for (var file in input.files!) {
+          final reader = html.FileReader();
+          reader.readAsDataUrl(file);
+          reader.onLoad.listen((e) {
+            setState(() {
+              _photoPreviewUrls.add(reader.result as String);
+            });
+          });
+        }
+      });
+    }
+  }
 
-  //     if (widget.isEditing['isEditing']) {
-  //       print('Editing facility...');
-  //       String? facilityId = widget.isEditing['id']?['id'];
-  //       if (facilityId == null) throw Exception('No facility ID found.');
-
-  //       if (widget.isEditing['data']['images'] != null) {
-  //         print('Deleting old images...');
-  //         for (var oldImage in widget.isEditing['data']['images']) {
-  //           await FirebaseStorage.instance.refFromURL(oldImage).delete();
-  //         }
-  //       }
-
-  //       await FirebaseFirestore.instance
-  //           .collection('facilities')
-  //           .doc(facilityId)
-  //           .update({
-  //         'name': facilityNameController.text,
-  //         'description': descriptionController.text,
-  //         'category': selectedCategory,
-  //         'building': selectedBuilding,
-  //         'contact_details': {
-  //           'contact_email': emailController.text,
-  //           'contact_number': contactNumberController.text,
-  //         },
-  //         'position': GeoPoint(
-  //             widget.selectedPin.latitude, widget.selectedPin.longitude),
-  //         'edited_by': userName,
-  //         'updated_at': DateTime.now(),
-  //         'images': uploadedImageUrls,
-  //         'Visibility': isVisible,
-  //       });
-
-  //       toastification.show(
-  //         context: context,
-  //         title: const Text('Facility successfully updated!'),
-  //         type: ToastificationType.success,
-  //       );
-  //     } else {
-  //       print('Adding new facility...');
-  //       await FirebaseFirestore.instance.collection('facilities').add({
-  //         'name': facilityNameController.text,
-  //         'description': descriptionController.text,
-  //         'category': selectedCategory,
-  //         'building': selectedBuilding,
-  //         'contact_details': {
-  //           'contact_email': emailController.text,
-  //           'contact_number': contactNumberController.text,
-  //         },
-  //         'position': GeoPoint(
-  //             widget.selectedPin.latitude, widget.selectedPin.longitude),
-  //         'added_by': userName,
-  //         'created_at': DateTime.now(),
-  //         'updated_at': DateTime.now(),
-  //         'images': uploadedImageUrls,
-  //         'Visibility': isVisible,
-  //       });
-
-  //       toastification.show(
-  //         context: context,
-  //         title: const Text('Facility successfully added!'),
-  //         type: ToastificationType.success,
-  //       );
-  //     }
-  //     widget.onCancel();
-  //   } catch (e) {
-  //     toastification.show(
-  //       context: context,
-  //       title: const Text('Failed to save facility!'),
-  //       type: ToastificationType.error,
-  //     );
-  //     print('Error: $e');
-  //   } finally {
-  //     setState(() {
-  //       isLoading = false;
-  //     });
-  //   }
-  // }
+  Widget _buildPhotoPreview() {
+    return Container(
+      child: Wrap(
+        spacing: 8.0,  // Horizontal space between items
+        runSpacing: 8.0,  // Vertical space between rows
+        children: List.generate(_photoPreviewUrls.length, (index) {
+          return Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Image.network(
+                  _photoPreviewUrls[index],
+                  width: 100,
+                  height: 100,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              Positioned(
+                right: 0,
+                top: 0,
+                child: IconButton(
+                  icon: Icon(Icons.close, color: Colors.red),
+                  onPressed: () {
+                    setState(() {
+                      _selectedPhotos.removeAt(index);
+                      _photoPreviewUrls.removeAt(index);
+                    });
+                  },
+                ),
+              ),
+            ],
+          );
+        }),
+      ),
+    );
+  }
 
   Future<void> saveFacility() async {
     if (!_formKey.currentState!.validate()) return;
@@ -258,23 +227,13 @@ class _RightModalState extends State<RightModal> {
     });
 
     try {
-      if (imageBytes.isNotEmpty) {
+      if (_selectedPhotos.isNotEmpty) {
         print('Starting image upload...');
-        uploadedImageUrls = await Future.wait(imageBytes.map((image) async {
-          try {
-            String fileName =
-                'images/${DateTime.now().millisecondsSinceEpoch}.jpg';
-            final metadata = SettableMetadata(contentType: 'image/jpeg');
-            final uploadTask = await FirebaseStorage.instance
-                .ref(fileName)
-                .putData(image!, metadata);
-            print('Image uploaded successfully.');
-            return await uploadTask.ref.getDownloadURL();
-          } catch (e) {
-            print('Error uploading image: $e');
-            throw Exception('Failed to upload image.');
-          }
-        }));
+
+        uploadedImageUrls = await _uploadPhotos();
+
+      } else {
+        print('No image bytes available for upload.');
       }
 
       if (widget.isEditing['isEditing']) {
@@ -352,6 +311,55 @@ class _RightModalState extends State<RightModal> {
       setState(() {
         isLoading = false;
       });
+    }
+  }
+
+
+    // if there is a temptData, set the values of the fields
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    print(widget.isEditing['data']['images']);
+
+    if (widget.isEditing['isEditing'] == true) {
+      // If isEditing is available, populate the form fields
+      setState(() {
+        facilityNameController.text =
+            widget.isEditing['data']['name']; // string
+        descriptionController.text =
+            widget.isEditing['data']['description']; // string
+        // schedules = widget.isEditing['data']['openHours']; // list
+        selectedCategory =
+            widget.isEditing['data']['category']; // string (drop dowm)
+        selectedBuilding =
+            widget.isEditing['data']['building']; // string (drop down)
+        emailController.text = widget.isEditing['data']['email']; // string
+        contactNumberController.text =
+            widget.isEditing['data']['number']; // string
+        // save the network image to the imageBytes
+
+        // imageBytes = widget.isEditing['data']['images']; // image
+      });
+    } else {
+      // If temptData is available, populate the form fields
+      if (widget.temptData != null) {
+        setState(() {
+          facilityNameController.text =
+              widget.temptData?['facilityName']; // string
+          descriptionController.text =
+              widget.temptData?['description']; // string
+          schedules = widget.temptData?['openHours']; // list
+          selectedCategory =
+              widget.temptData?['category']; // string (drop dowm)
+          selectedBuilding =
+              widget.temptData?['building']; // string (drop down)
+          emailController.text = widget.temptData?['contactNumber']; // string
+          contactNumberController.text =
+              widget.temptData?['contactNumber']; // string
+          imageBytes = widget.temptData?['image']; // image
+        });
+      }
     }
   }
 
@@ -648,78 +656,59 @@ class _RightModalState extends State<RightModal> {
                               ),
                               const SizedBox(height: 10),
                               TextButton(
-                                onPressed: () async {
-                                  var picked =
-                                      await FilePicker.platform.pickFiles(
-                                    type: FileType.custom,
-                                    allowMultiple: true,
-                                    allowedExtensions: ['jpg', 'png', 'jpeg'],
-                                  );
-                                  if (picked != null) {
-                                    setState(() {
-                                      imageBytes = picked.files
-                                          .map((file) => file.bytes)
-                                          .toList();
-                                    });
-                                    toastification.show(
-                                      // ignore: use_build_context_synchronously
-                                      context: context,
-                                      title: const Text(
-                                          'Image successfully uploaded!'),
-                                      style: ToastificationStyle.flatColored,
-                                      type: ToastificationType.success,
-                                      alignment: Alignment.topCenter,
-                                      autoCloseDuration:
-                                          const Duration(seconds: 3),
-                                    );
-                                  }
-                                },
+                                onPressed: _isUploading ? null : _pickImages,
                                 child: const Text('Upload Image'),
                               ),
                               // Display all the images in a carousel
-                              if (imageBytes.isEmpty &&
-                                  widget.isEditing['isEditing'])
-                                SizedBox(
-                                  height: 100,
-                                  child: ListView.builder(
-                                    scrollDirection: Axis.horizontal,
-                                    itemCount: widget
-                                        .isEditing['data']['images'].length,
-                                    itemBuilder: (context, index) {
-                                      return Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 10),
-                                        child: Image.network(
-                                          widget.isEditing['data']['images']
-                                              [index],
-                                          width: 100,
-                                          height: 100,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              if (imageBytes.isNotEmpty)
-                                SizedBox(
-                                  height: 100,
-                                  child: ListView.builder(
-                                    scrollDirection: Axis.horizontal,
-                                    itemCount: imageBytes.length,
-                                    itemBuilder: (context, index) {
-                                      return Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 10),
-                                        child: Image.memory(
-                                          imageBytes[index]!,
-                                          width: 100,
-                                          height: 100,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
+                               if (_photoPreviewUrls.isNotEmpty) 
+                              Column(
+                                children: [
+                                  _buildPhotoPreview(),
+                                ],
+                              ),
+                              // if (imageBytes.isEmpty &&
+                              //     widget.isEditing['isEditing'])
+                              //   SizedBox(
+                              //     height: 100,
+                              //     child: ListView.builder(
+                              //       scrollDirection: Axis.horizontal,
+                              //       itemCount: widget
+                              //           .isEditing['data']['images'].length,
+                              //       itemBuilder: (context, index) {
+                              //         return Padding(
+                              //           padding:
+                              //               const EdgeInsets.only(right: 10),
+                              //           child: Image.network(
+                              //             widget.isEditing['data']['images']
+                              //                 [index],
+                              //             width: 100,
+                              //             height: 100,
+                              //             fit: BoxFit.cover,
+                              //           ),
+                              //         );
+                              //       },
+                              //     ),
+                              //   ),
+                              // if (imageBytes.isNotEmpty)
+                              //   SizedBox(
+                              //     height: 100,
+                              //     child: ListView.builder(
+                              //       scrollDirection: Axis.horizontal,
+                              //       itemCount: imageBytes.length,
+                              //       itemBuilder: (context, index) {
+                              //         return Padding(
+                              //           padding:
+                              //               const EdgeInsets.only(right: 10),
+                              //           child: Image.memory(
+                              //             imageBytes[index]!,
+                              //             width: 100,
+                              //             height: 100,
+                              //             fit: BoxFit.cover,
+                              //           ),
+                              //         );
+                              //       },
+                              //     ),
+                              //   ),
                               const SizedBox(height: 10),
                               TextButton(
                                 onPressed: () {
@@ -794,12 +783,12 @@ class _RightModalState extends State<RightModal> {
                                   const SizedBox(width: 10),
                                   // store in firebase
                                   TextButton(
-                                    style: ButtonStyle(
-                                      fixedSize: MaterialStateProperty.all(
-                                          const Size(100, 35)),
+                                    style: const ButtonStyle(
+                                      fixedSize: WidgetStatePropertyAll(
+                                          Size(100, 35)),
                                       backgroundColor:
-                                          MaterialStateProperty.all(
-                                        const Color.fromARGB(255, 44, 97, 138),
+                                          WidgetStatePropertyAll(
+                                        Color.fromARGB(255, 44, 97, 138),
                                       ),
                                     ),
                                     onPressed: () async {
@@ -816,21 +805,19 @@ class _RightModalState extends State<RightModal> {
                                 ],
                               ),
                             ),
+                            if (isLoading)
+                              Container(
+                                color: Colors.black.withOpacity(0.5),
+                                child: const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              ),
                           ],
                         ),
                       ],
                     ),
                   ),
                 ),
-                if (isLoading)
-                  Positioned.fill(
-                    child: Container(
-                      color: Colors.black.withOpacity(0.5),
-                      child: const Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),
