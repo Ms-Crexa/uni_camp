@@ -3,12 +3,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
+// import 'package:file_picker/file_picker.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:toastification/toastification.dart';
 import 'dart:typed_data';
-import 'package:image/image.dart' as img;
+// import 'package:image/image.dart' as img;
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
 
