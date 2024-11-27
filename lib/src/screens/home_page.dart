@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -83,68 +85,67 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    fetchMarkerData();
+    subscribeToMarkerData();
   }
 
-  Future<void> fetchMarkerData() async {
-    try {
-      final querySnapshot =
-          await FirebaseFirestore.instance.collection('facilities').get();
+  void subscribeToMarkerData() {
+    FirebaseFirestore.instance.collection('facilities').snapshots().listen(
+      (querySnapshot) {
+        final List<Map<String, dynamic>> fetchedData = querySnapshot.docs.map((doc) {
+          final data = doc.data();
+          final id = doc.id;
 
-      final List<Map<String, dynamic>> fetchedData =
-          querySnapshot.docs.map((doc) {
-        final data = doc.data();
-        final id = doc.id;
+          final selectedPin = data['position'];
+          final contactDetails = data['contact_details'] ?? {};
 
-        final selectedPin = data['position'];
-        final contactDetails = data['contact_details'] ?? {};
+          final double latitude;
+          final double longitude;
 
-        final double latitude;
-        final double longitude;
+          if (selectedPin != null &&
+              selectedPin is Map<String, dynamic> &&
+              selectedPin['latitude'] != null &&
+              selectedPin['longitude'] != null) {
+            latitude = selectedPin['latitude'];
+            longitude = selectedPin['longitude'];
+          } else if (data['position'] != null && data['position'] is GeoPoint) {
+            final geoPoint = data['position'] as GeoPoint;
+            latitude = geoPoint.latitude;
+            longitude = geoPoint.longitude;
+          } else {
+            latitude = 0.0;
+            longitude = 0.0;
+          }
 
-        if (selectedPin != null &&
-            selectedPin is Map<String, dynamic> &&
-            selectedPin['latitude'] != null &&
-            selectedPin['longitude'] != null) {
-          latitude = selectedPin['latitude'];
-          longitude = selectedPin['longitude'];
-        } else if (data['position'] != null && data['position'] is GeoPoint) {
-          final geoPoint = data['position'] as GeoPoint;
-          latitude = geoPoint.latitude;
-          longitude = geoPoint.longitude;
-        } else {
-          latitude = 0.0;
-          longitude = 0.0;
-        }
+          final position = LatLng(latitude, longitude);
 
-        final position = LatLng(latitude, longitude);
+          return {
+            "id": id,
+            "position": position,
+            "added_by": data['added by'] ?? "Unknown",
+            "building": data['building'] ?? "Unknown",
+            "category": data['category'] ?? "Unknown",
+            "description": data['description'] ?? "No description available",
+            "name": data['name'] ?? 'Unknown',
+            "email": contactDetails['contact_email'] ?? "no contacts available",
+            "number": contactDetails['contact_number'] ?? "no contacts available",
+            "openHours":
+                data['openHours'] ?? data['open_hours'] ?? "Not specified",
+            "images":
+                data['images'] != null ? data['images'] as List<dynamic> : [],
+            "timestamp": data['timestamp'] ?? "No timestamp available",
+            "created_at": data['created_at'] ?? "No created at available",
+            "updated_at": data['updated_at'] ?? "No updated at available",
+          };
+        }).toList();
 
-        return {
-          "id": id,
-          "position": position,
-          "added_by": data['added by'] ?? "Unknown",
-          "building": data['building'] ?? "Unknown",
-          "category": data['category'] ?? "Unknown",
-          "description": data['description'] ?? "No description available",
-          "name": data['name'] ?? 'Unknown',
-          "email": contactDetails['contact_email'] ?? "no contacts available",
-          "number": contactDetails['contact_number'] ?? "no contacts available",
-          "openHours":
-              data['openHours'] ?? data['open_hours'] ?? "Not specified",
-          "images":
-              data['images'] != null ? data['images'] as List<dynamic> : [],
-          "timestamp": data['timestamp'] ?? "No timestamp available",
-          "created_at": data['created_at'] ?? "No created at available",
-          "updated_at": data['updated_at'] ?? "No updated at available",
-        };
-      }).toList();
-
-      setState(() {
-        markerData = fetchedData;
-      });
-    } catch (error) {
-      print("Error fetching marker data: $error");
-    }
+        setState(() {
+          markerData = fetchedData;
+        });
+      },
+      onError: (error) {
+        print("Error subscribing to marker data: $error");
+      },
+    );
   }
 
   void _onMarkerTap(Map<String, dynamic> pinData) {

@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:toastification/toastification.dart';
@@ -292,18 +294,18 @@ class _FacilityModal extends State<FacilityModal> {
                       ),
                       child: const Text('Edit'),
                     ),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (widget.selectedPin != null) {
-                          showDeleteConfirmationDialog(
-                              widget.selectedPin!['id']);
-                        }
-                      },
-                      style: ButtonStyle(
-                        fixedSize: WidgetStateProperty.all(const Size(140, 35)),
-                      ),
-                      child: const Text('Delete'),
-                    ),
+                    // ElevatedButton(
+                    //   onPressed: () {
+                    //     if (widget.selectedPin != null) {
+                    //       showDeleteConfirmationDialog(
+                    //           widget.selectedPin!['id']);
+                    //     }
+                    //   },
+                    //   style: ButtonStyle(
+                    //     fixedSize: WidgetStateProperty.all(const Size(140, 35)),
+                    //   ),
+                    //   child: const Text('Delete'),
+                    // ),
                   ],
                 ),
               ],

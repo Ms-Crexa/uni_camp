@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print, use_rethrow_when_possible, use_build_context_synchronously
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -8,7 +8,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:toastification/toastification.dart';
 import 'dart:typed_data';
-// import 'package:image/image.dart' as img;
+import 'package:image/image.dart' as img;
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
 
@@ -92,55 +92,65 @@ class _RightModalState extends State<RightModal> {
   ];
 
   Future<List<String>> _uploadPhotos() async {
-  List<String> photoUrls = [];
+    List<String> photoUrls = [];
 
-  for (html.File photo in _selectedPhotos) {
-    String fileName = '${DateTime.now().millisecondsSinceEpoch}_${photo.name}';
-    Reference storageRef = FirebaseStorage.instance.ref().child(fileName); // Without the "location_photos/" path
+    for (html.File photo in _selectedPhotos) {
+      String fileName = '${DateTime.now().millisecondsSinceEpoch}_${photo.name}';
+      Reference storageRef = FirebaseStorage.instance.ref().child(fileName);
 
-    try {
-      // Create a FileReader
-      final reader = html.FileReader();
-      // Read the file as array buffer
-      reader.readAsArrayBuffer(photo);
+      try {
+        // Create a FileReader
+        final reader = html.FileReader();
+        reader.readAsArrayBuffer(photo);
 
-      // Wait for the reader to complete
-      await reader.onLoadEnd.first;
+        // Wait for the reader to complete
+        await reader.onLoadEnd.first;
 
-      // Get the result as Blob
-      final blob = html.Blob([reader.result]);
+        // Get the original image bytes
+        final Uint8List originalBytes = reader.result as Uint8List;
 
-      // Determine the Content-Type based on file extension (simplified example)
-      String contentType = 'application/octet-stream'; // Default content type
-      if (photo.name.endsWith('.png')) {
-        contentType = 'image/png';
-      } else if (photo.name.endsWith('.jpg') || photo.name.endsWith('.jpeg')) {
-        contentType = 'image/jpeg';
-      } else if (photo.name.endsWith('.gif')) {
-        contentType = 'image/gif';
+        // Decode the image using the `image` package
+        final img.Image? originalImage = img.decodeImage(originalBytes);
+        if (originalImage == null) {
+          throw Exception("Failed to decode image");
+        }
+
+        // Resize and compress the image
+        final img.Image compressedImage = img.copyResize(
+          originalImage,
+          width: 1024, // Set a maximum width (adjust as needed)
+        );
+        final Uint8List compressedBytes = Uint8List.fromList(img.encodeJpg(compressedImage, quality: 75));
+
+        // Create a Blob from the compressed bytes
+        final blob = html.Blob([compressedBytes]);
+
+        // Determine the Content-Type based on file extension (simplified example)
+        String contentType = 'image/jpeg'; // Default to JPEG after compression
+        if (photo.name.endsWith('.png')) {
+          contentType = 'image/png';
+        }
+
+        // Set the metadata with contentType
+        final metadata = SettableMetadata(
+          contentType: contentType,
+        );
+
+        // Upload the compressed file with metadata
+        await storageRef.putBlob(blob, metadata);
+
+        // Get the download URL
+        String downloadUrl = await storageRef.getDownloadURL();
+        photoUrls.add(downloadUrl);
+      } catch (e) {
+        print('Error uploading photo: $e');
+        throw e;
       }
-
-      // Set the metadata with contentType
-      final metadata = SettableMetadata(
-        contentType: contentType,
-      );
-
-      // Upload the file with the metadata
-      await storageRef.putBlob(blob, metadata);
-      
-      // Get the download URL
-      String downloadUrl = await storageRef.getDownloadURL();
-      photoUrls.add(downloadUrl);
-    } catch (e) {
-      print('Error uploading photo: $e');
-      throw e;
     }
+
+    return photoUrls;
   }
 
-  return photoUrls;
-}
-
-  // Method to pick images for web
   Future<void> _pickImages() async {
     final html.FileUploadInputElement input = html.FileUploadInputElement()
       ..accept = 'image/*'
@@ -154,24 +164,28 @@ class _RightModalState extends State<RightModal> {
       setState(() {
         _selectedPhotos.addAll(input.files!);
         // Create preview URLs for the selected images
-        toastification.show(
-          // ignore: use_build_context_synchronously
-          context: context,
-          title: const Text(
-              'Image successfully uploaded!'),
-          style: ToastificationStyle.flatColored,
-          type: ToastificationType.success,
-          alignment: Alignment.topCenter,
-          autoCloseDuration:
-              const Duration(seconds: 3),
-        );
         for (var file in input.files!) {
           final reader = html.FileReader();
-          reader.readAsDataUrl(file);
+          reader.readAsArrayBuffer(file);
           reader.onLoad.listen((e) {
-            setState(() {
-              _photoPreviewUrls.add(reader.result as String);
-            });
+            final Uint8List originalBytes = reader.result as Uint8List;
+            final img.Image? originalImage = img.decodeImage(originalBytes);
+
+            if (originalImage != null) {
+              // Resize the image (to 100px width, maintaining aspect ratio)
+              final img.Image resizedImage = img.copyResize(originalImage, width: 100);
+
+              // Compress the resized image (to JPEG format)
+              final Uint8List previewBytes = Uint8List.fromList(img.encodeJpg(resizedImage, quality: 50));
+
+              // Create a Blob from the compressed image bytes
+              final previewBlob = html.Blob([previewBytes]);
+              final previewUrl = html.Url.createObjectUrl(previewBlob);
+
+              setState(() {
+                _photoPreviewUrls.add(previewUrl);
+              });
+            }
           });
         }
       });
@@ -179,39 +193,37 @@ class _RightModalState extends State<RightModal> {
   }
 
   Widget _buildPhotoPreview() {
-    return Container(
-      child: Wrap(
-        spacing: 8.0,  // Horizontal space between items
-        runSpacing: 8.0,  // Vertical space between rows
-        children: List.generate(_photoPreviewUrls.length, (index) {
-          return Stack(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Image.network(
-                  _photoPreviewUrls[index],
-                  width: 100,
-                  height: 100,
-                  fit: BoxFit.cover,
-                ),
+    return Wrap(
+      spacing: 8.0,  // Horizontal space between items
+      runSpacing: 8.0,  // Vertical space between rows
+      children: List.generate(_photoPreviewUrls.length, (index) {
+        return Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Image.network(
+                _photoPreviewUrls[index],
+                width: 100,
+                height: 100,
+                fit: BoxFit.cover,
               ),
-              Positioned(
-                right: 0,
-                top: 0,
-                child: IconButton(
-                  icon: Icon(Icons.close, color: Colors.red),
-                  onPressed: () {
-                    setState(() {
-                      _selectedPhotos.removeAt(index);
-                      _photoPreviewUrls.removeAt(index);
-                    });
-                  },
-                ),
+            ),
+            Positioned(
+              right: 0,
+              top: 0,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.red),
+                onPressed: () {
+                  setState(() {
+                    _selectedPhotos.removeAt(index);
+                    _photoPreviewUrls.removeAt(index);
+                  });
+                },
               ),
-            ],
-          );
-        }),
-      ),
+            ),
+          ],
+        );
+      }),
     );
   }
 
@@ -660,55 +672,12 @@ class _RightModalState extends State<RightModal> {
                                 child: const Text('Upload Image'),
                               ),
                               // Display all the images in a carousel
-                               if (_photoPreviewUrls.isNotEmpty) 
+                              if (_photoPreviewUrls.isNotEmpty) 
                               Column(
                                 children: [
                                   _buildPhotoPreview(),
                                 ],
                               ),
-                              // if (imageBytes.isEmpty &&
-                              //     widget.isEditing['isEditing'])
-                              //   SizedBox(
-                              //     height: 100,
-                              //     child: ListView.builder(
-                              //       scrollDirection: Axis.horizontal,
-                              //       itemCount: widget
-                              //           .isEditing['data']['images'].length,
-                              //       itemBuilder: (context, index) {
-                              //         return Padding(
-                              //           padding:
-                              //               const EdgeInsets.only(right: 10),
-                              //           child: Image.network(
-                              //             widget.isEditing['data']['images']
-                              //                 [index],
-                              //             width: 100,
-                              //             height: 100,
-                              //             fit: BoxFit.cover,
-                              //           ),
-                              //         );
-                              //       },
-                              //     ),
-                              //   ),
-                              // if (imageBytes.isNotEmpty)
-                              //   SizedBox(
-                              //     height: 100,
-                              //     child: ListView.builder(
-                              //       scrollDirection: Axis.horizontal,
-                              //       itemCount: imageBytes.length,
-                              //       itemBuilder: (context, index) {
-                              //         return Padding(
-                              //           padding:
-                              //               const EdgeInsets.only(right: 10),
-                              //           child: Image.memory(
-                              //             imageBytes[index]!,
-                              //             width: 100,
-                              //             height: 100,
-                              //             fit: BoxFit.cover,
-                              //           ),
-                              //         );
-                              //       },
-                              //     ),
-                              //   ),
                               const SizedBox(height: 10),
                               TextButton(
                                 onPressed: () {
@@ -753,7 +722,7 @@ class _RightModalState extends State<RightModal> {
                                 },
                                 activeColor: Colors.black,
                               ),
-                              Text('Visible to others'),
+                              const Text('Visible to others'),
                             ],
                           ),
                         ),
@@ -782,36 +751,42 @@ class _RightModalState extends State<RightModal> {
                                           ))),
                                   const SizedBox(width: 10),
                                   // store in firebase
-                                  TextButton(
-                                    style: const ButtonStyle(
-                                      fixedSize: WidgetStatePropertyAll(
-                                          Size(100, 35)),
-                                      backgroundColor:
-                                          WidgetStatePropertyAll(
-                                        Color.fromARGB(255, 44, 97, 138),
+                                  Stack(
+                                    children: [
+                                      // If isLoading, show CircularProgressIndicator on top of the button
+                                      if (isLoading)
+                                        const Positioned(
+                                          top: 0, // You can adjust this value based on where you want the indicator to appear
+                                          left: 0,
+                                          right: 0,
+                                          child: Center(
+                                            child: CircularProgressIndicator(),
+                                          ),
+                                        ),
+                                      // The TextButton will be placed under the CircularProgressIndicator
+                                      TextButton(
+                                        style: const ButtonStyle(
+                                          fixedSize: WidgetStatePropertyAll(Size(100, 35)),
+                                          backgroundColor: WidgetStatePropertyAll(
+                                            Color.fromARGB(255, 44, 97, 138),
+                                          ),
+                                        ),
+                                        onPressed: isLoading ? null : () async {
+                                          await saveFacility();
+                                        },
+                                        child: const Text(
+                                          'Submit',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                    onPressed: () async {
-                                      // Call the saveFacility function
-                                      await saveFacility();
-                                    },
-                                    child: const Text(
-                                      'Submit',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                      ),
-                                    ),
+                                    ],
                                   ),
+
                                 ],
                               ),
                             ),
-                            if (isLoading)
-                              Container(
-                                color: Colors.black.withOpacity(0.5),
-                                child: const Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              ),
                           ],
                         ),
                       ],
