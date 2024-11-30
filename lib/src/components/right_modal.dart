@@ -95,7 +95,8 @@ class _RightModalState extends State<RightModal> {
     List<String> photoUrls = [];
 
     for (html.File photo in _selectedPhotos) {
-      String fileName = '${DateTime.now().millisecondsSinceEpoch}_${photo.name}';
+      String fileName =
+          '${DateTime.now().millisecondsSinceEpoch}_${photo.name}';
       Reference storageRef = FirebaseStorage.instance.ref().child(fileName);
 
       try {
@@ -120,7 +121,8 @@ class _RightModalState extends State<RightModal> {
           originalImage,
           width: 1024, // Set a maximum width (adjust as needed)
         );
-        final Uint8List compressedBytes = Uint8List.fromList(img.encodeJpg(compressedImage, quality: 75));
+        final Uint8List compressedBytes =
+            Uint8List.fromList(img.encodeJpg(compressedImage, quality: 75));
 
         // Create a Blob from the compressed bytes
         final blob = html.Blob([compressedBytes]);
@@ -173,10 +175,12 @@ class _RightModalState extends State<RightModal> {
 
             if (originalImage != null) {
               // Resize the image (to 100px width, maintaining aspect ratio)
-              final img.Image resizedImage = img.copyResize(originalImage, width: 100);
+              final img.Image resizedImage =
+                  img.copyResize(originalImage, width: 100);
 
               // Compress the resized image (to JPEG format)
-              final Uint8List previewBytes = Uint8List.fromList(img.encodeJpg(resizedImage, quality: 50));
+              final Uint8List previewBytes =
+                  Uint8List.fromList(img.encodeJpg(resizedImage, quality: 50));
 
               // Create a Blob from the compressed image bytes
               final previewBlob = html.Blob([previewBytes]);
@@ -192,40 +196,84 @@ class _RightModalState extends State<RightModal> {
     }
   }
 
-  Widget _buildPhotoPreview() {
-    return Wrap(
-      spacing: 8.0,  // Horizontal space between items
-      runSpacing: 8.0,  // Vertical space between rows
-      children: List.generate(_photoPreviewUrls.length, (index) {
-        return Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Image.network(
-                _photoPreviewUrls[index],
-                width: 100,
-                height: 100,
-                fit: BoxFit.cover,
-              ),
-            ),
-            Positioned(
-              right: 0,
-              top: 0,
-              child: IconButton(
-                icon: const Icon(Icons.close, color: Colors.red),
-                onPressed: () {
-                  setState(() {
-                    _selectedPhotos.removeAt(index);
-                    _photoPreviewUrls.removeAt(index);
-                  });
-                },
-              ),
-            ),
-          ],
-        );
-      }),
-    );
-  }
+  // Future<void> _pickImages() async {
+  //   final html.FileUploadInputElement input = html.FileUploadInputElement()
+  //     ..accept = 'image/*'
+  //     ..multiple = true;
+
+  //   input.click();
+
+  //   await input.onChange.first;
+
+  //   if (input.files != null) {
+  //     setState(() {
+  //       _selectedPhotos.addAll(input.files!);
+  //       for (var file in input.files!) {
+  //         final reader = html.FileReader();
+  //         reader.readAsArrayBuffer(file);
+  //         reader.onLoad.listen((event) {
+  //           final Uint8List originalBytes = reader.result as Uint8List;
+  //           final img.Image? originalImage = img.decodeImage(originalBytes);
+
+  //           if (originalImage != null) {
+  //             // Resize the image
+  //             final img.Image resizedImage =
+  //                 img.copyResize(originalImage, width: 100);
+
+  //             // Compress the resized image to JPEG format
+  //             final Uint8List previewBytes =
+  //                 Uint8List.fromList(img.encodeJpg(resizedImage, quality: 50));
+
+  //             // Create a Blob and generate a preview URL
+  //             final previewBlob = html.Blob([previewBytes]);
+  //             final previewUrl = html.Url.createObjectUrl(previewBlob);
+
+  //             setState(() {
+  //               _photoPreviewUrls.add(previewUrl);
+  //             });
+  //           } else {
+  //             debugPrint('Failed to decode image.');
+  //           }
+  //         });
+  //       }
+  //     });
+  //   }
+  // }
+
+  // Widget _buildPhotoPreview() {
+  //   return Wrap(
+  //     spacing: 8.0,
+  //     runSpacing: 8.0,
+  //     children: List.generate(_photoPreviewUrls.length, (index) {
+  //       return Stack(
+  //         children: [
+  //           Padding(
+  //             padding: const EdgeInsets.all(8.0),
+  //             child: Image.network(
+  //               _photoPreviewUrls[index],
+  //               width: 100,
+  //               height: 100,
+  //               fit: BoxFit.cover,
+  //             ),
+  //           ),
+  //           Positioned(
+  //             right: 0,
+  //             top: 0,
+  //             child: IconButton(
+  //               icon: const Icon(Icons.close, color: Colors.red),
+  //               onPressed: () {
+  //                 setState(() {
+  //                   _selectedPhotos.removeAt(index);
+  //                   _photoPreviewUrls.removeAt(index);
+  //                 });
+  //               },
+  //             ),
+  //           ),
+  //         ],
+  //       );
+  //     }),
+  //   );
+  // }
 
   Future<void> saveFacility() async {
     if (!_formKey.currentState!.validate()) return;
@@ -243,7 +291,6 @@ class _RightModalState extends State<RightModal> {
         print('Starting image upload...');
 
         uploadedImageUrls = await _uploadPhotos();
-
       } else {
         print('No image bytes available for upload.');
       }
@@ -326,8 +373,7 @@ class _RightModalState extends State<RightModal> {
     }
   }
 
-
-    // if there is a temptData, set the values of the fields
+  // if there is a temptData, set the values of the fields
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -672,12 +718,93 @@ class _RightModalState extends State<RightModal> {
                                 child: const Text('Upload Image'),
                               ),
                               // Display all the images in a carousel
-                              if (_photoPreviewUrls.isNotEmpty) 
-                              Column(
-                                children: [
-                                  _buildPhotoPreview(),
-                                ],
-                              ),
+                              // if (_photoPreviewUrls.isNotEmpty)
+                              //   Column(
+                              //     children: [
+                              //       SizedBox(child: _buildPhotoPreview()),
+                              //     ],
+                              //   ),
+
+                              const SizedBox(height: 10),
+                              // if (imageBytes.isNotEmpty)
+                              //   Text('this is null'),
+                              // Wrap(
+                              //   spacing: 8.0,
+                              //   runSpacing: 8.0,
+                              //   children: List.generate(
+                              //       _photoPreviewUrls.length, (index) {
+                              //     return Stack(
+                              //       children: [
+                              //         Padding(
+                              //           padding: const EdgeInsets.all(8.0),
+                              //           child: Image.network(
+                              //             _photoPreviewUrls[index],
+                              //             width: 100,
+                              //             height: 100,
+                              //             fit: BoxFit.cover,
+                              //           ),
+                              //         ),
+                              //         Positioned(
+                              //           right: 0,
+                              //           top: 0,
+                              //           child: IconButton(
+                              //             icon: const Icon(Icons.close,
+                              //                 color: Colors.red),
+                              //             onPressed: () {
+                              //               setState(() {
+                              //                 _selectedPhotos.removeAt(index);
+                              //                 _photoPreviewUrls.removeAt(index);
+                              //               });
+                              //             },
+                              //           ),
+                              //         ),
+                              //       ],
+                              //     );
+                              //   }),
+                              // ),
+                              if (imageBytes.isEmpty &&
+                                  widget.isEditing['isEditing'])
+                                SizedBox(
+                                  height: 100,
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: widget
+                                        .isEditing['data']['images'].length,
+                                    itemBuilder: (context, index) {
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 10),
+                                        child: Image.network(
+                                          widget.isEditing['data']['images']
+                                              [index],
+                                          width: 100,
+                                          height: 100,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              if (imageBytes.isNotEmpty)
+                                SizedBox(
+                                  height: 100,
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: imageBytes.length,
+                                    itemBuilder: (context, index) {
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 10),
+                                        child: Image.memory(
+                                          imageBytes[index]!,
+                                          width: 100,
+                                          height: 100,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
                               const SizedBox(height: 10),
                               TextButton(
                                 onPressed: () {
@@ -756,7 +883,8 @@ class _RightModalState extends State<RightModal> {
                                       // If isLoading, show CircularProgressIndicator on top of the button
                                       if (isLoading)
                                         const Positioned(
-                                          top: 0, // You can adjust this value based on where you want the indicator to appear
+                                          top:
+                                              0, // You can adjust this value based on where you want the indicator to appear
                                           left: 0,
                                           right: 0,
                                           child: Center(
@@ -766,14 +894,18 @@ class _RightModalState extends State<RightModal> {
                                       // The TextButton will be placed under the CircularProgressIndicator
                                       TextButton(
                                         style: const ButtonStyle(
-                                          fixedSize: WidgetStatePropertyAll(Size(100, 35)),
-                                          backgroundColor: WidgetStatePropertyAll(
+                                          fixedSize: WidgetStatePropertyAll(
+                                              Size(100, 35)),
+                                          backgroundColor:
+                                              WidgetStatePropertyAll(
                                             Color.fromARGB(255, 44, 97, 138),
                                           ),
                                         ),
-                                        onPressed: isLoading ? null : () async {
-                                          await saveFacility();
-                                        },
+                                        onPressed: isLoading
+                                            ? null
+                                            : () async {
+                                                await saveFacility();
+                                              },
                                         child: const Text(
                                           'Submit',
                                           style: TextStyle(
@@ -783,7 +915,6 @@ class _RightModalState extends State<RightModal> {
                                       ),
                                     ],
                                   ),
-
                                 ],
                               ),
                             ),

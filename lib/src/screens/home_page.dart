@@ -91,7 +91,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   void subscribeToMarkerData() {
     FirebaseFirestore.instance.collection('facilities').snapshots().listen(
       (querySnapshot) {
-        final List<Map<String, dynamic>> fetchedData = querySnapshot.docs.map((doc) {
+        final List<Map<String, dynamic>> fetchedData =
+            querySnapshot.docs.map((doc) {
           final data = doc.data();
           final id = doc.id;
 
@@ -127,7 +128,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             "description": data['description'] ?? "No description available",
             "name": data['name'] ?? 'Unknown',
             "email": contactDetails['contact_email'] ?? "no contacts available",
-            "number": contactDetails['contact_number'] ?? "no contacts available",
+            "number":
+                contactDetails['contact_number'] ?? "no contacts available",
             "openHours":
                 data['openHours'] ?? data['open_hours'] ?? "Not specified",
             "images":
