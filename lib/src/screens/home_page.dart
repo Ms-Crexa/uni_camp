@@ -52,35 +52,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   // is editing
   Map<String, dynamic> isEditing = {'isEditing': false, 'data': {}};
   // Markers
-  List<Map<String, dynamic>> markerData = [
-    // {
-    //   "position": const LatLng(7.0715, 125.6125),
-    //   "added_by": "John Doe",
-    //   "building": "Main Building",
-    //   "category": "Classroom",
-    //   "description": "This is a classroom",
-    //   "name": "Room 101",
-    //   "email": "random@gmail.com",
-    //   "number": "09123456789",
-    //   "openHours": {
-    //     'Monday': '8:00 AM - 5:00 PM',
-    //     'Tuesday': '8:00 AM - 5:00 PM',
-    //     'Wednesday': '8:00 AM - 5:00 PM',
-    //     'Thursday': '8:00 AM - 5:00 PM',
-    //     'Friday': '8:00 AM - 5:00 PM',
-    //     'Saturday': '8:00 AM - 5:00 PM',
-    //     'Sunday': 'Closed',
-    //   },
-    //   "timestamp": Timestamp(1633056000, 0),
-    //   "created_at": Timestamp(1633056000, 0),
-    //   "updated_at": Timestamp(1633056000, 0),
-    //   "images": [
-    //     "https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL",
-    //     "https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL",
-    //     "https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL",
-    //   ],
-    // },
-  ];
+  List<Map<String, dynamic>> markerData = [];
 
   @override
   void initState() {
