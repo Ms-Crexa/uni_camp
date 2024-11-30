@@ -275,6 +275,105 @@ class _RightModalState extends State<RightModal> {
   //   );
   // }
 
+  // Future<void> saveFacility() async {
+  //   if (!_formKey.currentState!.validate()) return;
+
+  //   User? user = FirebaseAuth.instance.currentUser;
+  //   String? userName = user?.displayName ?? 'Unknown User';
+  //   List<String> uploadedImageUrls = [];
+
+  //   setState(() {
+  //     isLoading = true;
+  //   });
+
+  //   try {
+  //     if (_selectedPhotos.isNotEmpty) {
+  //       print('Starting image upload...');
+
+  //       uploadedImageUrls = await _uploadPhotos();
+  //     } else {
+  //       print('No image bytes available for upload.');
+  //     }
+
+  //     if (widget.isEditing['isEditing']) {
+  //       print('Editing facility...');
+  //       String? facilityId = widget.isEditing['id']?['id'];
+  //       if (facilityId == null) throw Exception('No facility ID found.');
+
+  //       if (widget.isEditing['data']['images'] != null) {
+  //         print('Deleting old images...');
+  //         for (var oldImage in widget.isEditing['data']['images']) {
+  //           await FirebaseStorage.instance.refFromURL(oldImage).delete();
+  //         }
+  //       }
+
+  //       await FirebaseFirestore.instance
+  //           .collection('facilities')
+  //           .doc(facilityId)
+  //           .update({
+  //         'name': facilityNameController.text,
+  //         'description': descriptionController.text,
+  //         'category': selectedCategory,
+  //         'building': selectedBuilding,
+  //         'contact_details': {
+  //           'contact_email': emailController.text,
+  //           'contact_number': contactNumberController.text,
+  //         },
+  //         'position': GeoPoint(
+  //             widget.selectedPin.latitude, widget.selectedPin.longitude),
+  //         'edited_by': userName,
+  //         'updated_at': DateTime.now(),
+  //         'images': uploadedImageUrls,
+  //         'Visibility': isVisible,
+  //       });
+
+  //       toastification.show(
+  //         context: context,
+  //         title: const Text('Facility successfully updated!'),
+  //         type: ToastificationType.success,
+  //       );
+  //     } else {
+  //       print('Adding new facility...');
+  //       await FirebaseFirestore.instance.collection('facilities').add({
+  //         'name': facilityNameController.text,
+  //         'description': descriptionController.text,
+  //         'category': selectedCategory,
+  //         'building': selectedBuilding,
+  //         'contact_details': {
+  //           'contact_email': emailController.text,
+  //           'contact_number': contactNumberController.text,
+  //         },
+  //         'position': GeoPoint(
+  //             widget.selectedPin.latitude, widget.selectedPin.longitude),
+  //         'added_by': userName,
+  //         'created_at': DateTime.now(),
+  //         'updated_at': DateTime.now(),
+  //         'images': uploadedImageUrls,
+  //         'Visibility': isVisible,
+  //         'openHours': schedules,
+  //       });
+
+  //       toastification.show(
+  //         context: context,
+  //         title: const Text('Facility successfully added!'),
+  //         type: ToastificationType.success,
+  //       );
+  //     }
+  //     widget.onCancel();
+  //   } catch (e) {
+  //     toastification.show(
+  //       context: context,
+  //       title: const Text('Failed to save facility!'),
+  //       type: ToastificationType.error,
+  //     );
+  //     print('Error: $e');
+  //   } finally {
+  //     setState(() {
+  //       isLoading = false;
+  //     });
+  //   }
+  // }
+
   Future<void> saveFacility() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -294,6 +393,18 @@ class _RightModalState extends State<RightModal> {
       } else {
         print('No image bytes available for upload.');
       }
+
+      // Extract the open hours as strings
+      // still need to figure how can I simply it.
+      List<String> openHoursText = schedules.map((schedule) {
+        final selectedDaysStr = ["Su", "M", "T", "W", "Th", "F", "Sa"]
+            .asMap()
+            .entries
+            .where((entry) => schedule["days"][entry.key])
+            .map((entry) => entry.value)
+            .join(", ");
+        return "$selectedDaysStr: ${schedule["start"]} - ${schedule["end"]}";
+      }).toList();
 
       if (widget.isEditing['isEditing']) {
         print('Editing facility...');
@@ -325,6 +436,7 @@ class _RightModalState extends State<RightModal> {
           'updated_at': DateTime.now(),
           'images': uploadedImageUrls,
           'Visibility': isVisible,
+          'openHours': openHoursText,
         });
 
         toastification.show(
@@ -350,6 +462,7 @@ class _RightModalState extends State<RightModal> {
           'updated_at': DateTime.now(),
           'images': uploadedImageUrls,
           'Visibility': isVisible,
+          'openHours': openHoursText, // Save the open hours text
         });
 
         toastification.show(
