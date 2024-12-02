@@ -210,14 +210,12 @@ class _RightModalState extends State<RightModal> {
     try {
       if (_selectedPhotos.isNotEmpty) {
         print('Starting image upload...');
-
         uploadedImageUrls = await _uploadPhotos();
       } else {
         print('No image bytes available for upload.');
       }
 
-      // Extract the open hours as strings
-      // still need to figure how can I simply it.
+      // Extract open hours as strings
       List<String> openHoursText = schedules.map((schedule) {
         final selectedDaysStr = ["Su", "M", "T", "W", "Th", "F", "Sa"]
             .asMap()
@@ -228,6 +226,7 @@ class _RightModalState extends State<RightModal> {
         return "$selectedDaysStr: ${schedule["start"]} - ${schedule["end"]}";
       }).toList();
 
+      // For editing an existing facility
       if (widget.isEditing['isEditing']) {
         print('Editing facility...');
         String? facilityId = widget.isEditing['id']?['id'];
@@ -325,13 +324,14 @@ class _RightModalState extends State<RightModal> {
             widget.isEditing['data']['description']; // string
         // schedules = widget.isEditing['data']['openHours']; // list
         selectedCategory =
-            widget.isEditing['data']['category']; // string (drop dowm)
+            widget.isEditing['data']['category']; // string (dropdown)
         selectedBuilding =
-            widget.isEditing['data']['building']; // string (drop down)
+            widget.isEditing['data']['building']; // string (dropdown)
         emailController.text = widget.isEditing['data']['email']; // string
         contactNumberController.text =
             widget.isEditing['data']['number']; // string
-        // save the network image to the imageBytes
+
+        isVisible = widget.isEditing['data']['Visibility'] ?? true;
 
         // _selectedPhotos = widget.isEditing['data']['images']; // image
       });
@@ -344,14 +344,14 @@ class _RightModalState extends State<RightModal> {
           descriptionController.text =
               widget.temptData?['description']; // string
           schedules = widget.temptData?['openHours']; // list
-          selectedCategory =
-              widget.temptData?['category']; // string (drop dowm)
-          selectedBuilding =
-              widget.temptData?['building']; // string (drop down)
+          selectedCategory = widget.temptData?['category']; // string (dropdown)
+          selectedBuilding = widget.temptData?['building']; // string (dropdown)
           emailController.text = widget.temptData?['contactNumber']; // string
           contactNumberController.text =
               widget.temptData?['contactNumber']; // string
           _selectedPhotos = widget.temptData?['image']; // image
+
+          isVisible = widget.temptData?['Visibility'] ?? true;
         });
       }
     }
@@ -808,6 +808,7 @@ class _RightModalState extends State<RightModal> {
                                         contactNumberController.text,
                                     'image': _selectedPhotos,
                                     'selectedPin': widget.selectedPin,
+                                    'Visibility': isVisible,
                                   };
 
                                   // Pass the map data to onSelectPin

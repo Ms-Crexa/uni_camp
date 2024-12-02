@@ -109,6 +109,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             "timestamp": data['timestamp'] ?? "No timestamp available",
             "created_at": data['created_at'] ?? "No created at available",
             "updated_at": data['updated_at'] ?? "No updated at available",
+            "Visibility": data['Visibility'],
           };
         }).toList();
 
