@@ -39,7 +39,7 @@ class _RightModalState extends State<RightModal> {
   bool isVisible = true;
 
   List<Uint8List?> imageBytes = [];
-  final List<html.File> _selectedPhotos = [];
+  List<html.File> _selectedPhotos = [];
   final bool _isUploading = false;
   final List<String> _photoPreviewUrls = [];
   final TextEditingController facilityNameController = TextEditingController();
@@ -196,184 +196,6 @@ class _RightModalState extends State<RightModal> {
     }
   }
 
-  // Future<void> _pickImages() async {
-  //   final html.FileUploadInputElement input = html.FileUploadInputElement()
-  //     ..accept = 'image/*'
-  //     ..multiple = true;
-
-  //   input.click();
-
-  //   await input.onChange.first;
-
-  //   if (input.files != null) {
-  //     setState(() {
-  //       _selectedPhotos.addAll(input.files!);
-  //       for (var file in input.files!) {
-  //         final reader = html.FileReader();
-  //         reader.readAsArrayBuffer(file);
-  //         reader.onLoad.listen((event) {
-  //           final Uint8List originalBytes = reader.result as Uint8List;
-  //           final img.Image? originalImage = img.decodeImage(originalBytes);
-
-  //           if (originalImage != null) {
-  //             // Resize the image
-  //             final img.Image resizedImage =
-  //                 img.copyResize(originalImage, width: 100);
-
-  //             // Compress the resized image to JPEG format
-  //             final Uint8List previewBytes =
-  //                 Uint8List.fromList(img.encodeJpg(resizedImage, quality: 50));
-
-  //             // Create a Blob and generate a preview URL
-  //             final previewBlob = html.Blob([previewBytes]);
-  //             final previewUrl = html.Url.createObjectUrl(previewBlob);
-
-  //             setState(() {
-  //               _photoPreviewUrls.add(previewUrl);
-  //             });
-  //           } else {
-  //             debugPrint('Failed to decode image.');
-  //           }
-  //         });
-  //       }
-  //     });
-  //   }
-  // }
-
-  // Widget _buildPhotoPreview() {
-  //   return Wrap(
-  //     spacing: 8.0,
-  //     runSpacing: 8.0,
-  //     children: List.generate(_photoPreviewUrls.length, (index) {
-  //       return Stack(
-  //         children: [
-  //           Padding(
-  //             padding: const EdgeInsets.all(8.0),
-  //             child: Image.network(
-  //               _photoPreviewUrls[index],
-  //               width: 100,
-  //               height: 100,
-  //               fit: BoxFit.cover,
-  //             ),
-  //           ),
-  //           Positioned(
-  //             right: 0,
-  //             top: 0,
-  //             child: IconButton(
-  //               icon: const Icon(Icons.close, color: Colors.red),
-  //               onPressed: () {
-  //                 setState(() {
-  //                   _selectedPhotos.removeAt(index);
-  //                   _photoPreviewUrls.removeAt(index);
-  //                 });
-  //               },
-  //             ),
-  //           ),
-  //         ],
-  //       );
-  //     }),
-  //   );
-  // }
-
-  // Future<void> saveFacility() async {
-  //   if (!_formKey.currentState!.validate()) return;
-
-  //   User? user = FirebaseAuth.instance.currentUser;
-  //   String? userName = user?.displayName ?? 'Unknown User';
-  //   List<String> uploadedImageUrls = [];
-
-  //   setState(() {
-  //     isLoading = true;
-  //   });
-
-  //   try {
-  //     if (_selectedPhotos.isNotEmpty) {
-  //       print('Starting image upload...');
-
-  //       uploadedImageUrls = await _uploadPhotos();
-  //     } else {
-  //       print('No image bytes available for upload.');
-  //     }
-
-  //     if (widget.isEditing['isEditing']) {
-  //       print('Editing facility...');
-  //       String? facilityId = widget.isEditing['id']?['id'];
-  //       if (facilityId == null) throw Exception('No facility ID found.');
-
-  //       if (widget.isEditing['data']['images'] != null) {
-  //         print('Deleting old images...');
-  //         for (var oldImage in widget.isEditing['data']['images']) {
-  //           await FirebaseStorage.instance.refFromURL(oldImage).delete();
-  //         }
-  //       }
-
-  //       await FirebaseFirestore.instance
-  //           .collection('facilities')
-  //           .doc(facilityId)
-  //           .update({
-  //         'name': facilityNameController.text,
-  //         'description': descriptionController.text,
-  //         'category': selectedCategory,
-  //         'building': selectedBuilding,
-  //         'contact_details': {
-  //           'contact_email': emailController.text,
-  //           'contact_number': contactNumberController.text,
-  //         },
-  //         'position': GeoPoint(
-  //             widget.selectedPin.latitude, widget.selectedPin.longitude),
-  //         'edited_by': userName,
-  //         'updated_at': DateTime.now(),
-  //         'images': uploadedImageUrls,
-  //         'Visibility': isVisible,
-  //       });
-
-  //       toastification.show(
-  //         context: context,
-  //         title: const Text('Facility successfully updated!'),
-  //         type: ToastificationType.success,
-  //       );
-  //     } else {
-  //       print('Adding new facility...');
-  //       await FirebaseFirestore.instance.collection('facilities').add({
-  //         'name': facilityNameController.text,
-  //         'description': descriptionController.text,
-  //         'category': selectedCategory,
-  //         'building': selectedBuilding,
-  //         'contact_details': {
-  //           'contact_email': emailController.text,
-  //           'contact_number': contactNumberController.text,
-  //         },
-  //         'position': GeoPoint(
-  //             widget.selectedPin.latitude, widget.selectedPin.longitude),
-  //         'added_by': userName,
-  //         'created_at': DateTime.now(),
-  //         'updated_at': DateTime.now(),
-  //         'images': uploadedImageUrls,
-  //         'Visibility': isVisible,
-  //         'openHours': schedules,
-  //       });
-
-  //       toastification.show(
-  //         context: context,
-  //         title: const Text('Facility successfully added!'),
-  //         type: ToastificationType.success,
-  //       );
-  //     }
-  //     widget.onCancel();
-  //   } catch (e) {
-  //     toastification.show(
-  //       context: context,
-  //       title: const Text('Failed to save facility!'),
-  //       type: ToastificationType.error,
-  //     );
-  //     print('Error: $e');
-  //   } finally {
-  //     setState(() {
-  //       isLoading = false;
-  //     });
-  //   }
-  // }
-
   Future<void> saveFacility() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -410,13 +232,6 @@ class _RightModalState extends State<RightModal> {
         print('Editing facility...');
         String? facilityId = widget.isEditing['id']?['id'];
         if (facilityId == null) throw Exception('No facility ID found.');
-
-        if (widget.isEditing['data']['images'] != null) {
-          print('Deleting old images...');
-          for (var oldImage in widget.isEditing['data']['images']) {
-            await FirebaseStorage.instance.refFromURL(oldImage).delete();
-          }
-        }
 
         await FirebaseFirestore.instance
             .collection('facilities')
@@ -462,7 +277,7 @@ class _RightModalState extends State<RightModal> {
           'updated_at': DateTime.now(),
           'images': uploadedImageUrls,
           'Visibility': isVisible,
-          'openHours': openHoursText, // Save the open hours text
+          'openHours': openHoursText,
         });
 
         toastification.show(
@@ -510,7 +325,7 @@ class _RightModalState extends State<RightModal> {
             widget.isEditing['data']['number']; // string
         // save the network image to the imageBytes
 
-        // imageBytes = widget.isEditing['data']['images']; // image
+        _selectedPhotos = widget.isEditing['data']['images']; // image
       });
     } else {
       // If temptData is available, populate the form fields
@@ -528,9 +343,168 @@ class _RightModalState extends State<RightModal> {
           emailController.text = widget.temptData?['contactNumber']; // string
           contactNumberController.text =
               widget.temptData?['contactNumber']; // string
-          imageBytes = widget.temptData?['image']; // image
+          _selectedPhotos = widget.temptData?['image']; // image
         });
       }
+    }
+  }
+
+  // Widget _buildPhotoPreview() {
+  //   return Wrap(
+  //     spacing: 8.0,
+  //     runSpacing: 8.0,
+  //     children: List.generate(_photoPreviewUrls.length, (index) {
+  //       return Stack(
+  //         children: [
+  //           Padding(
+  //             padding: const EdgeInsets.all(8.0),
+  //             child: Image.network(
+  //               _photoPreviewUrls[index],
+  //               width: 100,
+  //               height: 100,
+  //               fit: BoxFit.cover,
+  //             ),
+  //           ),
+  //           Positioned(
+  //             right: 0,
+  //             top: 0,
+  //             child: IconButton(
+  //               icon: const Icon(Icons.close, color: Colors.red),
+  //               onPressed: () {
+  //                 setState(() {
+  //                   _selectedPhotos.removeAt(index);
+  //                   _photoPreviewUrls.removeAt(index);
+  //                 });
+  //               },
+  //             ),
+  //           ),
+  //         ],
+  //       );
+  //     }),
+  //   );
+  // }
+
+  Widget _buildPhotoPreview() {
+    if (widget.isEditing['isEditing']) {
+      return SizedBox(
+        height: 100,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: widget.isEditing['data']['images'].length,
+          itemBuilder: (context, index) {
+            final imageUrl = widget.isEditing['data']['images'][index];
+            return Stack(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: GestureDetector(
+                    onTap: () {
+                      // Preview the image when clicked
+                      showDialog(
+                        context: context,
+                        builder: (_) => Dialog(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Image.network(
+                                imageUrl,
+                                fit: BoxFit.cover,
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Close'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                    child: Image.network(
+                      imageUrl,
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  child: GestureDetector(
+                    onTap: () async {
+                      // Handle image deletion from Firebase
+                      try {
+                        // Delete the image from Firebase Storage
+                        await FirebaseStorage.instance
+                            .refFromURL(imageUrl)
+                            .delete();
+
+                        // Update the local state to remove the deleted image
+                        setState(() {
+                          widget.isEditing['data']['images'].removeAt(index);
+                        });
+
+                        // Show a snackbar for successful deletion
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Image deleted successfully'),
+                          ),
+                        );
+                      } catch (e) {
+                        // Show a snackbar if deletion fails
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Failed to delete image: $e'),
+                          ),
+                        );
+                      }
+                    },
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.red,
+                      size: 24,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+    } else {
+      // Return a default widget or an empty container when not editing
+      return Wrap(
+        spacing: 8.0,
+        runSpacing: 8.0,
+        children: List.generate(_photoPreviewUrls.length, (index) {
+          return Stack(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Image.network(
+                  _photoPreviewUrls[index],
+                  width: 100,
+                  height: 100,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              Positioned(
+                right: 0,
+                top: 0,
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.red),
+                  onPressed: () {
+                    setState(() {
+                      _selectedPhotos.removeAt(index);
+                      _photoPreviewUrls.removeAt(index);
+                    });
+                  },
+                ),
+              ),
+            ],
+          );
+        }),
+      );
     }
   }
 
@@ -831,93 +805,209 @@ class _RightModalState extends State<RightModal> {
                                 child: const Text('Upload Image'),
                               ),
                               // Display all the images in a carousel
-                              // if (_photoPreviewUrls.isNotEmpty)
-                              //   Column(
-                              //     children: [
-                              //       SizedBox(child: _buildPhotoPreview()),
-                              //     ],
+                              if (_selectedPhotos.isNotEmpty)
+                                Column(
+                                  children: [
+                                    SizedBox(child: _buildPhotoPreview()),
+                                  ],
+                                ),
+
+                              // if (widget.isEditing['isEditing'])
+                              //   SizedBox(
+                              //     height: 100,
+                              //     child: ListView.builder(
+                              //       scrollDirection: Axis.horizontal,
+                              //       itemCount: widget
+                              //           .isEditing['data']['images'].length,
+                              //       itemBuilder: (context, index) {
+                              //         final imageUrl = widget.isEditing['data']
+                              //             ['images'][index];
+                              //         return Stack(
+                              //           children: [
+                              //             Padding(
+                              //               padding: const EdgeInsets.only(
+                              //                   right: 10),
+                              //               child: GestureDetector(
+                              //                 onTap: () {
+                              //                   // Preview the image when clicked
+                              //                   showDialog(
+                              //                     context: context,
+                              //                     builder: (_) => Dialog(
+                              //                       child: Column(
+                              //                         mainAxisSize:
+                              //                             MainAxisSize.min,
+                              //                         children: [
+                              //                           Image.network(
+                              //                             imageUrl,
+                              //                             fit: BoxFit.cover,
+                              //                           ),
+                              //                           TextButton(
+                              //                             onPressed: () =>
+                              //                                 Navigator.pop(
+                              //                                     context),
+                              //                             child: const Text(
+                              //                                 'Close'),
+                              //                           ),
+                              //                         ],
+                              //                       ),
+                              //                     ),
+                              //                   );
+                              //                 },
+                              //                 child: Image.network(
+                              //                   imageUrl,
+                              //                   width: 100,
+                              //                   height: 100,
+                              //                   fit: BoxFit.cover,
+                              //                 ),
+                              //               ),
+                              //             ),
+                              //             Positioned(
+                              //               right: 0,
+                              //               top: 0,
+                              //               child: GestureDetector(
+                              //                 onTap: () async {
+                              //                   // Handle image deletion from Firebase
+                              //                   try {
+                              //                     await FirebaseStorage.instance
+                              //                         .refFromURL(imageUrl)
+                              //                         .delete();
+
+                              //                     // Update the local state to remove the deleted image
+                              //                     setState(() {
+                              //                       widget.isEditing['data']
+                              //                               ['images']
+                              //                           .removeAt(index);
+                              //                     });
+
+                              //                     ScaffoldMessenger.of(context)
+                              //                         .showSnackBar(
+                              //                       const SnackBar(
+                              //                         content: Text(
+                              //                             'Image deleted successfully'),
+                              //                       ),
+                              //                     );
+                              //                   } catch (e) {
+                              //                     ScaffoldMessenger.of(context)
+                              //                         .showSnackBar(
+                              //                       SnackBar(
+                              //                         content: Text(
+                              //                             'Failed to delete image: $e'),
+                              //                       ),
+                              //                     );
+                              //                   }
+                              //                 },
+                              //                 child: const Icon(
+                              //                   Icons.close,
+                              //                   color: Colors.red,
+                              //                   size: 24,
+                              //                 ),
+                              //               ),
+                              //             ),
+                              //           ],
+                              //         );
+                              //       },
+                              //     ),
+                              //   ),
+                              // if (widget.isEditing['isEditing'])
+                              //   SizedBox(
+                              //     height: 100,
+                              //     child: ListView.builder(
+                              //       scrollDirection: Axis.horizontal,
+                              //       itemCount: widget
+                              //           .isEditing['data']['images'].length,
+                              //       itemBuilder: (context, index) {
+                              //         final imageUrl = widget.isEditing['data']
+                              //             ['images'][index];
+                              //         return Stack(
+                              //           children: [
+                              //             Padding(
+                              //               padding: const EdgeInsets.only(
+                              //                   right: 10),
+                              //               child: GestureDetector(
+                              //                 onTap: () {
+                              //                   // Preview the image when clicked
+                              //                   showDialog(
+                              //                     context: context,
+                              //                     builder: (_) => Dialog(
+                              //                       child: Column(
+                              //                         mainAxisSize:
+                              //                             MainAxisSize.min,
+                              //                         children: [
+                              //                           Image.network(
+                              //                             imageUrl,
+                              //                             fit: BoxFit.cover,
+                              //                           ),
+                              //                           TextButton(
+                              //                             onPressed: () =>
+                              //                                 Navigator.pop(
+                              //                                     context),
+                              //                             child: const Text(
+                              //                                 'Close'),
+                              //                           ),
+                              //                         ],
+                              //                       ),
+                              //                     ),
+                              //                   );
+                              //                 },
+                              //                 child: Image.network(
+                              //                   imageUrl,
+                              //                   width: 100,
+                              //                   height: 100,
+                              //                   fit: BoxFit.cover,
+                              //                 ),
+                              //               ),
+                              //             ),
+                              //             Positioned(
+                              //               right: 0,
+                              //               top: 0,
+                              //               child: GestureDetector(
+                              //                 onTap: () async {
+                              //                   // Handle image deletion from Firebase
+                              //                   try {
+                              //                     // Delete the image from Firebase Storage
+                              //                     await FirebaseStorage.instance
+                              //                         .refFromURL(imageUrl)
+                              //                         .delete();
+
+                              //                     // Update the local state to remove the deleted image
+                              //                     setState(() {
+                              //                       widget.isEditing['data']
+                              //                               ['images']
+                              //                           .removeAt(index);
+                              //                     });
+
+                              //                     // Show a snackbar for successful deletion
+                              //                     ScaffoldMessenger.of(context)
+                              //                         .showSnackBar(
+                              //                       const SnackBar(
+                              //                         content: Text(
+                              //                             'Image deleted successfully'),
+                              //                       ),
+                              //                     );
+                              //                   } catch (e) {
+                              //                     // Show a snackbar if deletion fails
+                              //                     ScaffoldMessenger.of(context)
+                              //                         .showSnackBar(
+                              //                       SnackBar(
+                              //                         content: Text(
+                              //                             'Failed to delete image: $e'),
+                              //                       ),
+                              //                     );
+                              //                   }
+                              //                 },
+                              //                 child: const Icon(
+                              //                   Icons.close,
+                              //                   color: Colors.red,
+                              //                   size: 24,
+                              //                 ),
+                              //               ),
+                              //             ),
+                              //           ],
+                              //         );
+                              //       },
+                              //     ),
                               //   ),
 
-                              const SizedBox(height: 10),
-                              // if (imageBytes.isNotEmpty)
-                              //   Text('this is null'),
-                              // Wrap(
-                              //   spacing: 8.0,
-                              //   runSpacing: 8.0,
-                              //   children: List.generate(
-                              //       _photoPreviewUrls.length, (index) {
-                              //     return Stack(
-                              //       children: [
-                              //         Padding(
-                              //           padding: const EdgeInsets.all(8.0),
-                              //           child: Image.network(
-                              //             _photoPreviewUrls[index],
-                              //             width: 100,
-                              //             height: 100,
-                              //             fit: BoxFit.cover,
-                              //           ),
-                              //         ),
-                              //         Positioned(
-                              //           right: 0,
-                              //           top: 0,
-                              //           child: IconButton(
-                              //             icon: const Icon(Icons.close,
-                              //                 color: Colors.red),
-                              //             onPressed: () {
-                              //               setState(() {
-                              //                 _selectedPhotos.removeAt(index);
-                              //                 _photoPreviewUrls.removeAt(index);
-                              //               });
-                              //             },
-                              //           ),
-                              //         ),
-                              //       ],
-                              //     );
-                              //   }),
-                              // ),
-                              if (imageBytes.isEmpty &&
-                                  widget.isEditing['isEditing'])
-                                SizedBox(
-                                  height: 100,
-                                  child: ListView.builder(
-                                    scrollDirection: Axis.horizontal,
-                                    itemCount: widget
-                                        .isEditing['data']['images'].length,
-                                    itemBuilder: (context, index) {
-                                      return Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 10),
-                                        child: Image.network(
-                                          widget.isEditing['data']['images']
-                                              [index],
-                                          width: 100,
-                                          height: 100,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              if (imageBytes.isNotEmpty)
-                                SizedBox(
-                                  height: 100,
-                                  child: ListView.builder(
-                                    scrollDirection: Axis.horizontal,
-                                    itemCount: imageBytes.length,
-                                    itemBuilder: (context, index) {
-                                      return Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 10),
-                                        child: Image.memory(
-                                          imageBytes[index]!,
-                                          width: 100,
-                                          height: 100,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
                               const SizedBox(height: 10),
                               TextButton(
                                 onPressed: () {
@@ -930,7 +1020,7 @@ class _RightModalState extends State<RightModal> {
                                     'contactEmail': emailController.text,
                                     'contactNumber':
                                         contactNumberController.text,
-                                    'image': imageBytes,
+                                    'image': _selectedPhotos,
                                     'selectedPin': widget.selectedPin,
                                   };
 

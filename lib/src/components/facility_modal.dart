@@ -141,12 +141,9 @@ class _FacilityModal extends State<FacilityModal> {
                                         child: CircularProgressIndicator());
                                   },
                                   errorBuilder: (context, error, stackTrace) {
-                                    return const Center(
-                                      child: Text(
-                                        'Failed to load image',
-                                        style: TextStyle(color: Colors.red),
-                                      ),
-                                    );
+                                    return Center(
+                                        child: Image.network(
+                                            'https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL'));
                                   },
                                 ),
                               ),
