@@ -257,7 +257,10 @@ class _RightModalState extends State<RightModal> {
         toastification.show(
           context: context,
           title: const Text('Facility successfully updated!'),
+          style: ToastificationStyle.flatColored,
           type: ToastificationType.success,
+          alignment: Alignment.topCenter,
+          autoCloseDuration: const Duration(seconds: 3),
         );
       } else {
         print('Adding new facility...');
@@ -283,7 +286,10 @@ class _RightModalState extends State<RightModal> {
         toastification.show(
           context: context,
           title: const Text('Facility successfully added!'),
+          style: ToastificationStyle.flatColored,
           type: ToastificationType.success,
+          alignment: Alignment.topCenter,
+          autoCloseDuration: const Duration(seconds: 3),
         );
       }
       widget.onCancel();
@@ -292,6 +298,8 @@ class _RightModalState extends State<RightModal> {
         context: context,
         title: const Text('Failed to save facility!'),
         type: ToastificationType.error,
+        alignment: Alignment.topCenter,
+        autoCloseDuration: const Duration(seconds: 3),
       );
       print('Error: $e');
     } finally {
@@ -325,7 +333,7 @@ class _RightModalState extends State<RightModal> {
             widget.isEditing['data']['number']; // string
         // save the network image to the imageBytes
 
-        _selectedPhotos = widget.isEditing['data']['images']; // image
+        // _selectedPhotos = widget.isEditing['data']['images']; // image
       });
     } else {
       // If temptData is available, populate the form fields
@@ -349,163 +357,39 @@ class _RightModalState extends State<RightModal> {
     }
   }
 
-  // Widget _buildPhotoPreview() {
-  //   return Wrap(
-  //     spacing: 8.0,
-  //     runSpacing: 8.0,
-  //     children: List.generate(_photoPreviewUrls.length, (index) {
-  //       return Stack(
-  //         children: [
-  //           Padding(
-  //             padding: const EdgeInsets.all(8.0),
-  //             child: Image.network(
-  //               _photoPreviewUrls[index],
-  //               width: 100,
-  //               height: 100,
-  //               fit: BoxFit.cover,
-  //             ),
-  //           ),
-  //           Positioned(
-  //             right: 0,
-  //             top: 0,
-  //             child: IconButton(
-  //               icon: const Icon(Icons.close, color: Colors.red),
-  //               onPressed: () {
-  //                 setState(() {
-  //                   _selectedPhotos.removeAt(index);
-  //                   _photoPreviewUrls.removeAt(index);
-  //                 });
-  //               },
-  //             ),
-  //           ),
-  //         ],
-  //       );
-  //     }),
-  //   );
-  // }
-
   Widget _buildPhotoPreview() {
-    if (widget.isEditing['isEditing']) {
-      return SizedBox(
-        height: 100,
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          itemCount: widget.isEditing['data']['images'].length,
-          itemBuilder: (context, index) {
-            final imageUrl = widget.isEditing['data']['images'][index];
-            return Stack(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 10),
-                  child: GestureDetector(
-                    onTap: () {
-                      // Preview the image when clicked
-                      showDialog(
-                        context: context,
-                        builder: (_) => Dialog(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Image.network(
-                                imageUrl,
-                                fit: BoxFit.cover,
-                              ),
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('Close'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                    child: Image.network(
-                      imageUrl,
-                      width: 100,
-                      height: 100,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: GestureDetector(
-                    onTap: () async {
-                      // Handle image deletion from Firebase
-                      try {
-                        // Delete the image from Firebase Storage
-                        await FirebaseStorage.instance
-                            .refFromURL(imageUrl)
-                            .delete();
-
-                        // Update the local state to remove the deleted image
-                        setState(() {
-                          widget.isEditing['data']['images'].removeAt(index);
-                        });
-
-                        // Show a snackbar for successful deletion
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Image deleted successfully'),
-                          ),
-                        );
-                      } catch (e) {
-                        // Show a snackbar if deletion fails
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Failed to delete image: $e'),
-                          ),
-                        );
-                      }
-                    },
-                    child: const Icon(
-                      Icons.close,
-                      color: Colors.red,
-                      size: 24,
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      );
-    } else {
-      // Return a default widget or an empty container when not editing
-      return Wrap(
-        spacing: 8.0,
-        runSpacing: 8.0,
-        children: List.generate(_photoPreviewUrls.length, (index) {
-          return Stack(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Image.network(
-                  _photoPreviewUrls[index],
-                  width: 100,
-                  height: 100,
-                  fit: BoxFit.cover,
-                ),
+    return Wrap(
+      spacing: 8.0,
+      runSpacing: 8.0,
+      children: List.generate(_photoPreviewUrls.length, (index) {
+        return Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Image.network(
+                _photoPreviewUrls[index],
+                width: 100,
+                height: 100,
+                fit: BoxFit.cover,
               ),
-              Positioned(
-                right: 0,
-                top: 0,
-                child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.red),
-                  onPressed: () {
-                    setState(() {
-                      _selectedPhotos.removeAt(index);
-                      _photoPreviewUrls.removeAt(index);
-                    });
-                  },
-                ),
+            ),
+            Positioned(
+              right: 0,
+              top: 0,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.red),
+                onPressed: () {
+                  setState(() {
+                    _selectedPhotos.removeAt(index);
+                    _photoPreviewUrls.removeAt(index);
+                  });
+                },
               ),
-            ],
-          );
-        }),
-      );
-    }
+            ),
+          ],
+        );
+      }),
+    );
   }
 
   @override
@@ -812,201 +696,104 @@ class _RightModalState extends State<RightModal> {
                                   ],
                                 ),
 
-                              // if (widget.isEditing['isEditing'])
-                              //   SizedBox(
-                              //     height: 100,
-                              //     child: ListView.builder(
-                              //       scrollDirection: Axis.horizontal,
-                              //       itemCount: widget
-                              //           .isEditing['data']['images'].length,
-                              //       itemBuilder: (context, index) {
-                              //         final imageUrl = widget.isEditing['data']
-                              //             ['images'][index];
-                              //         return Stack(
-                              //           children: [
-                              //             Padding(
-                              //               padding: const EdgeInsets.only(
-                              //                   right: 10),
-                              //               child: GestureDetector(
-                              //                 onTap: () {
-                              //                   // Preview the image when clicked
-                              //                   showDialog(
-                              //                     context: context,
-                              //                     builder: (_) => Dialog(
-                              //                       child: Column(
-                              //                         mainAxisSize:
-                              //                             MainAxisSize.min,
-                              //                         children: [
-                              //                           Image.network(
-                              //                             imageUrl,
-                              //                             fit: BoxFit.cover,
-                              //                           ),
-                              //                           TextButton(
-                              //                             onPressed: () =>
-                              //                                 Navigator.pop(
-                              //                                     context),
-                              //                             child: const Text(
-                              //                                 'Close'),
-                              //                           ),
-                              //                         ],
-                              //                       ),
-                              //                     ),
-                              //                   );
-                              //                 },
-                              //                 child: Image.network(
-                              //                   imageUrl,
-                              //                   width: 100,
-                              //                   height: 100,
-                              //                   fit: BoxFit.cover,
-                              //                 ),
-                              //               ),
-                              //             ),
-                              //             Positioned(
-                              //               right: 0,
-                              //               top: 0,
-                              //               child: GestureDetector(
-                              //                 onTap: () async {
-                              //                   // Handle image deletion from Firebase
-                              //                   try {
-                              //                     await FirebaseStorage.instance
-                              //                         .refFromURL(imageUrl)
-                              //                         .delete();
+                              if (widget.isEditing['isEditing'])
+                                SizedBox(
+                                  height: 100,
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: widget
+                                        .isEditing['data']['images'].length,
+                                    itemBuilder: (context, index) {
+                                      final imageUrl = widget.isEditing['data']
+                                          ['images'][index];
+                                      return Stack(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                right: 10),
+                                            child: GestureDetector(
+                                              onTap: () {
+                                                // Preview the image when clicked
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (_) => Dialog(
+                                                    child: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Image.network(
+                                                          imageUrl,
+                                                          fit: BoxFit.cover,
+                                                        ),
+                                                        TextButton(
+                                                          onPressed: () =>
+                                                              Navigator.pop(
+                                                                  context),
+                                                          child: const Text(
+                                                              'Close'),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                              child: Image.network(
+                                                imageUrl,
+                                                width: 100,
+                                                height: 100,
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                          ),
+                                          Positioned(
+                                            right: 0,
+                                            top: 0,
+                                            child: GestureDetector(
+                                              onTap: () async {
+                                                try {
+                                                  // Delete the image from Firebase Storage
+                                                  await FirebaseStorage.instance
+                                                      .refFromURL(imageUrl)
+                                                      .delete();
 
-                              //                     // Update the local state to remove the deleted image
-                              //                     setState(() {
-                              //                       widget.isEditing['data']
-                              //                               ['images']
-                              //                           .removeAt(index);
-                              //                     });
+                                                  // Update the local state to remove the deleted image
+                                                  setState(() {
+                                                    widget.isEditing['data']
+                                                            ['images']
+                                                        .removeAt(index);
+                                                  });
 
-                              //                     ScaffoldMessenger.of(context)
-                              //                         .showSnackBar(
-                              //                       const SnackBar(
-                              //                         content: Text(
-                              //                             'Image deleted successfully'),
-                              //                       ),
-                              //                     );
-                              //                   } catch (e) {
-                              //                     ScaffoldMessenger.of(context)
-                              //                         .showSnackBar(
-                              //                       SnackBar(
-                              //                         content: Text(
-                              //                             'Failed to delete image: $e'),
-                              //                       ),
-                              //                     );
-                              //                   }
-                              //                 },
-                              //                 child: const Icon(
-                              //                   Icons.close,
-                              //                   color: Colors.red,
-                              //                   size: 24,
-                              //                 ),
-                              //               ),
-                              //             ),
-                              //           ],
-                              //         );
-                              //       },
-                              //     ),
-                              //   ),
-                              // if (widget.isEditing['isEditing'])
-                              //   SizedBox(
-                              //     height: 100,
-                              //     child: ListView.builder(
-                              //       scrollDirection: Axis.horizontal,
-                              //       itemCount: widget
-                              //           .isEditing['data']['images'].length,
-                              //       itemBuilder: (context, index) {
-                              //         final imageUrl = widget.isEditing['data']
-                              //             ['images'][index];
-                              //         return Stack(
-                              //           children: [
-                              //             Padding(
-                              //               padding: const EdgeInsets.only(
-                              //                   right: 10),
-                              //               child: GestureDetector(
-                              //                 onTap: () {
-                              //                   // Preview the image when clicked
-                              //                   showDialog(
-                              //                     context: context,
-                              //                     builder: (_) => Dialog(
-                              //                       child: Column(
-                              //                         mainAxisSize:
-                              //                             MainAxisSize.min,
-                              //                         children: [
-                              //                           Image.network(
-                              //                             imageUrl,
-                              //                             fit: BoxFit.cover,
-                              //                           ),
-                              //                           TextButton(
-                              //                             onPressed: () =>
-                              //                                 Navigator.pop(
-                              //                                     context),
-                              //                             child: const Text(
-                              //                                 'Close'),
-                              //                           ),
-                              //                         ],
-                              //                       ),
-                              //                     ),
-                              //                   );
-                              //                 },
-                              //                 child: Image.network(
-                              //                   imageUrl,
-                              //                   width: 100,
-                              //                   height: 100,
-                              //                   fit: BoxFit.cover,
-                              //                 ),
-                              //               ),
-                              //             ),
-                              //             Positioned(
-                              //               right: 0,
-                              //               top: 0,
-                              //               child: GestureDetector(
-                              //                 onTap: () async {
-                              //                   // Handle image deletion from Firebase
-                              //                   try {
-                              //                     // Delete the image from Firebase Storage
-                              //                     await FirebaseStorage.instance
-                              //                         .refFromURL(imageUrl)
-                              //                         .delete();
-
-                              //                     // Update the local state to remove the deleted image
-                              //                     setState(() {
-                              //                       widget.isEditing['data']
-                              //                               ['images']
-                              //                           .removeAt(index);
-                              //                     });
-
-                              //                     // Show a snackbar for successful deletion
-                              //                     ScaffoldMessenger.of(context)
-                              //                         .showSnackBar(
-                              //                       const SnackBar(
-                              //                         content: Text(
-                              //                             'Image deleted successfully'),
-                              //                       ),
-                              //                     );
-                              //                   } catch (e) {
-                              //                     // Show a snackbar if deletion fails
-                              //                     ScaffoldMessenger.of(context)
-                              //                         .showSnackBar(
-                              //                       SnackBar(
-                              //                         content: Text(
-                              //                             'Failed to delete image: $e'),
-                              //                       ),
-                              //                     );
-                              //                   }
-                              //                 },
-                              //                 child: const Icon(
-                              //                   Icons.close,
-                              //                   color: Colors.red,
-                              //                   size: 24,
-                              //                 ),
-                              //               ),
-                              //             ),
-                              //           ],
-                              //         );
-                              //       },
-                              //     ),
-                              //   ),
+                                                  // Show a snackbar for successful deletion
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    const SnackBar(
+                                                      content: Text(
+                                                          'Image deleted successfully'),
+                                                    ),
+                                                  );
+                                                } catch (e) {
+                                                  // Show a snackbar if deletion fails
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(
+                                                          'Failed to delete image: $e'),
+                                                    ),
+                                                  );
+                                                }
+                                              },
+                                              child: const Icon(
+                                                Icons.close,
+                                                color: Colors.red,
+                                                size: 24,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                ),
 
                               const SizedBox(height: 10),
                               TextButton(
@@ -1086,15 +873,14 @@ class _RightModalState extends State<RightModal> {
                                       // If isLoading, show CircularProgressIndicator on top of the button
                                       if (isLoading)
                                         const Positioned(
-                                          top:
-                                              0, // You can adjust this value based on where you want the indicator to appear
+                                          top: 0,
                                           left: 0,
                                           right: 0,
                                           child: Center(
                                             child: CircularProgressIndicator(),
                                           ),
                                         ),
-                                      // The TextButton will be placed under the CircularProgressIndicator
+
                                       TextButton(
                                         style: const ButtonStyle(
                                           fixedSize: WidgetStatePropertyAll(
@@ -1109,13 +895,23 @@ class _RightModalState extends State<RightModal> {
                                             : () async {
                                                 await saveFacility();
                                               },
-                                        child: const Text(
-                                          'Submit',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                          ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: isLoading
+                                              ? const CircularProgressIndicator(
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                          Color>(Colors.white),
+                                                  strokeWidth: 3.0,
+                                                )
+                                              : const Text(
+                                                  'Submit',
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
                                         ),
-                                      ),
+                                      )
                                     ],
                                   ),
                                 ],
