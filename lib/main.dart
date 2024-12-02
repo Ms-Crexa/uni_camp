@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: theme,
-      title: 'Flutter Google Sign-In',
+      title: 'UniCamp',
       home: SignInPage(),
     );
   }

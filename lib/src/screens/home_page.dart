@@ -122,12 +122,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
-  void _onMarkerTap(Map<String, dynamic> pinData) {
+  void _onMarkerTap(Map<String, dynamic> pinData, data) {
     setState(() {
       selectedPin = pinData;
     });
 
     print("Selected Pin ID: ${pinData['id']}");
+    print(data['openHours']);
+    print(data['name']);
   }
 
   Future<void> signOut(BuildContext context) async {
@@ -225,7 +227,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                               width: 60,
                               height: 60,
                               child: GestureDetector(
-                                onTap: () => _onMarkerTap(data),
+                                onTap: () => _onMarkerTap(data, data),
                                 child: AnimatedScale(
                                   scale: isSelected ? 1.1 : 1.0,
                                   duration: const Duration(milliseconds: 200),

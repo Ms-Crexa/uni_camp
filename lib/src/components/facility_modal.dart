@@ -217,14 +217,60 @@ class _FacilityModal extends State<FacilityModal> {
                   content: widget.selectedPin?["category"] ?? 'No category',
                 ),
                 const SizedBox(height: 20),
-                (widget.selectedPin?['openHours'] is Map<String, dynamic>)
-                    ? OpenHours(
-                        openHours: widget.selectedPin?['openHours'] ?? {},
-                      )
+                // (widget.selectedPin?['openHours'] is Map<String, dynamic>)
+                //     ? OpenHours(
+                //         openHours: widget.selectedPin?['openHours'] ?? {},
+                //       )
+                //     : const InformationRow(
+                //         icon: FontAwesomeIcons.clock,
+                //         content: 'No hours available',
+                //       ),
+
+                (widget.selectedPin?['openHours'] != null)
+                    ? (widget.selectedPin?['openHours'] is Map<String, dynamic>)
+                        ? OpenHours(
+                            openHours: widget.selectedPin?['openHours'] ?? {},
+                          )
+                        : (widget.selectedPin?['openHours'] is List)
+                            ? Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  const Icon(
+                                    FontAwesomeIcons.clock,
+                                    size: 20,
+                                    color: Color.fromARGB(255, 8, 118, 207),
+                                  ),
+                                  const SizedBox(width: 20),
+                                  Expanded(
+                                    child: SingleChildScrollView(
+                                      child: Column(
+                                        children:
+                                            (widget.selectedPin?['openHours']
+                                                    as List)
+                                                .map<Widget>((schedule) {
+                                          return ListTile(
+                                            title: Text(
+                                              schedule.toString(),
+                                              style:
+                                                  const TextStyle(fontSize: 14),
+                                            ),
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : const InformationRow(
+                                icon: FontAwesomeIcons.clock,
+                                content: 'No hours available',
+                              )
                     : const InformationRow(
                         icon: FontAwesomeIcons.clock,
                         content: 'No hours available',
                       ),
+
                 const SizedBox(height: 20),
                 InformationRow(
                   icon: FontAwesomeIcons.building,

@@ -38,7 +38,7 @@ class _RightModalState extends State<RightModal> {
   bool isLoading = false;
   bool isVisible = true;
 
-  List<Uint8List?> imageBytes = [];
+  // List<Uint8List?> imageBytes = [];
   List<html.File> _selectedPhotos = [];
   final bool _isUploading = false;
   final List<String> _photoPreviewUrls = [];
@@ -625,7 +625,8 @@ class _RightModalState extends State<RightModal> {
                                 openHours: schedules,
                                 onSave: (value) {
                                   setState(() {
-                                    schedules = value;
+                                    schedules =
+                                        value.cast<Map<String, dynamic>>();
                                   });
                                 },
                               ),
@@ -751,7 +752,6 @@ class _RightModalState extends State<RightModal> {
                                             child: GestureDetector(
                                               onTap: () async {
                                                 try {
-                                                  // Delete the image from Firebase Storage
                                                   await FirebaseStorage.instance
                                                       .refFromURL(imageUrl)
                                                       .delete();
@@ -762,7 +762,6 @@ class _RightModalState extends State<RightModal> {
                                                             ['images']
                                                         .removeAt(index);
                                                   });
-
                                                   // Show a snackbar for successful deletion
                                                   ScaffoldMessenger.of(context)
                                                       .showSnackBar(
