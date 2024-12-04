@@ -38,7 +38,6 @@ class _RightModalState extends State<RightModal> {
   bool isLoading = false;
   bool isVisible = true;
 
-  // List<Uint8List?> imageBytes = [];
   List<html.File> _selectedPhotos = [];
   final bool _isUploading = false;
   final List<String> _photoPreviewUrls = [];
@@ -122,7 +121,7 @@ class _RightModalState extends State<RightModal> {
           width: 1024, // Set a maximum width (adjust as needed)
         );
         final Uint8List compressedBytes =
-            Uint8List.fromList(img.encodeJpg(compressedImage, quality: 75));
+            Uint8List.fromList(img.encodeJpg(compressedImage, quality: 50));
 
         // Create a Blob from the compressed bytes
         final blob = html.Blob([compressedBytes]);
@@ -166,32 +165,32 @@ class _RightModalState extends State<RightModal> {
       setState(() {
         _selectedPhotos.addAll(input.files!);
         // Create preview URLs for the selected images
-        for (var file in input.files!) {
-          final reader = html.FileReader();
-          reader.readAsArrayBuffer(file);
-          reader.onLoad.listen((e) {
-            final Uint8List originalBytes = reader.result as Uint8List;
-            final img.Image? originalImage = img.decodeImage(originalBytes);
+          for (var file in input.files!) {
+            final reader = html.FileReader();
+            reader.readAsArrayBuffer(file);
+            reader.onLoad.listen((e) {
+                final Uint8List originalBytes = reader.result as Uint8List;
+                final img.Image? originalImage = img.decodeImage(originalBytes);
 
-            if (originalImage != null) {
-              // Resize the image (to 100px width, maintaining aspect ratio)
-              final img.Image resizedImage =
-                  img.copyResize(originalImage, width: 100);
+              if (originalImage != null) {
+                // Resize the image (to 100px width, maintaining aspect ratio)
+                final img.Image resizedImage =
+                    img.copyResize(originalImage, width: 100);
 
-              // Compress the resized image (to JPEG format)
-              final Uint8List previewBytes =
-                  Uint8List.fromList(img.encodeJpg(resizedImage, quality: 50));
+                // Compress the resized image (to JPEG format)
+                final Uint8List previewBytes =
+                    Uint8List.fromList(img.encodeJpg(resizedImage, quality: 50));
 
-              // Create a Blob from the compressed image bytes
-              final previewBlob = html.Blob([previewBytes]);
-              final previewUrl = html.Url.createObjectUrl(previewBlob);
+                // Create a Blob from the compressed image bytes
+                final previewBlob = html.Blob([previewBytes]);
+                final previewUrl = html.Url.createObjectUrl(previewBlob);
 
-              setState(() {
-                _photoPreviewUrls.add(previewUrl);
-              });
-            }
-          });
-        }
+                setState(() {
+                  _photoPreviewUrls.add(previewUrl);
+                });
+              }  
+            });
+          }
       });
     }
   }
@@ -214,17 +213,6 @@ class _RightModalState extends State<RightModal> {
       } else {
         print('No image bytes available for upload.');
       }
-
-      // Extract open hours as strings
-      List<String> openHoursText = schedules.map((schedule) {
-        final selectedDaysStr = ["Su", "M", "T", "W", "Th", "F", "Sa"]
-            .asMap()
-            .entries
-            .where((entry) => schedule["days"][entry.key])
-            .map((entry) => entry.value)
-            .join(", ");
-        return "$selectedDaysStr: ${schedule["start"]} - ${schedule["end"]}";
-      }).toList();
 
       // For editing an existing facility
       if (widget.isEditing['isEditing']) {
@@ -250,7 +238,7 @@ class _RightModalState extends State<RightModal> {
           'updated_at': DateTime.now(),
           'images': uploadedImageUrls,
           'Visibility': isVisible,
-          'openHours': openHoursText,
+          'openHours': schedules,
         });
 
         toastification.show(
@@ -279,7 +267,7 @@ class _RightModalState extends State<RightModal> {
           'updated_at': DateTime.now(),
           'images': uploadedImageUrls,
           'Visibility': isVisible,
-          'openHours': openHoursText,
+          'openHours': schedules,
         });
 
         toastification.show(
@@ -313,45 +301,61 @@ class _RightModalState extends State<RightModal> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    print(widget.isEditing['data']['images']);
-
     if (widget.isEditing['isEditing'] == true) {
       // If isEditing is available, populate the form fields
       setState(() {
-        facilityNameController.text =
-            widget.isEditing['data']['name']; // string
-        descriptionController.text =
-            widget.isEditing['data']['description']; // string
-        // schedules = widget.isEditing['data']['openHours']; // list
-        selectedCategory =
-            widget.isEditing['data']['category']; // string (dropdown)
-        selectedBuilding =
-            widget.isEditing['data']['building']; // string (dropdown)
+        facilityNameController.text = widget.isEditing['data']['name']; // string
+        descriptionController.text = widget.isEditing['data']['description']; // string
+        schedules = (widget.isEditing['data']['openHours'] as List<dynamic>)
+            .map((item) => item as Map<String, dynamic>)
+            .toList(); // list
+        selectedCategory = widget.isEditing['data']['category']; // string (dropdown)
+        selectedBuilding = widget.isEditing['data']['building']; // string (dropdown)
         emailController.text = widget.isEditing['data']['email']; // string
-        contactNumberController.text =
-            widget.isEditing['data']['number']; // string
-
+        contactNumberController.text = widget.isEditing['data']['number']; // string
         isVisible = widget.isEditing['data']['Visibility'] ?? true;
-
-        // _selectedPhotos = widget.isEditing['data']['images']; // image
       });
     } else {
       // If temptData is available, populate the form fields
       if (widget.temptData != null) {
         setState(() {
-          facilityNameController.text =
-              widget.temptData?['facilityName']; // string
-          descriptionController.text =
-              widget.temptData?['description']; // string
+          facilityNameController.text = widget.temptData?['facilityName']; // string
+          descriptionController.text =  widget.temptData?['description']; // string
           schedules = widget.temptData?['openHours']; // list
           selectedCategory = widget.temptData?['category']; // string (dropdown)
           selectedBuilding = widget.temptData?['building']; // string (dropdown)
           emailController.text = widget.temptData?['contactNumber']; // string
-          contactNumberController.text =
-              widget.temptData?['contactNumber']; // string
-          _selectedPhotos = widget.temptData?['image']; // image
-
+          contactNumberController.text =  widget.temptData?['contactNumber']; // string
+          _selectedPhotos = widget.temptData?['images']; // image
           isVisible = widget.temptData?['Visibility'] ?? true;
+
+          for (var file in _selectedPhotos) {
+            final reader = html.FileReader();
+            reader.readAsArrayBuffer(file);
+            reader.onLoad.listen((e) {
+              final Uint8List originalBytes = reader.result as Uint8List;
+              final img.Image? originalImage = img.decodeImage(originalBytes);
+
+              if (originalImage != null) {
+                // Resize the image (to 100px width, maintaining aspect ratio)
+                final img.Image resizedImage =
+                    img.copyResize(originalImage, width: 100);
+
+                // Compress the resized image (to JPEG format)
+                final Uint8List previewBytes =
+                    Uint8List.fromList(img.encodeJpg(resizedImage, quality: 50));
+
+                // Create a Blob from the compressed image bytes
+                final previewBlob = html.Blob([previewBytes]);
+                final previewUrl = html.Url.createObjectUrl(previewBlob);
+
+                setState(() {
+                  _photoPreviewUrls.add(previewUrl);
+                });
+              }
+            });
+          }
+
         });
       }
     }
@@ -625,8 +629,7 @@ class _RightModalState extends State<RightModal> {
                                 openHours: schedules,
                                 onSave: (value) {
                                   setState(() {
-                                    schedules =
-                                        value.cast<Map<String, dynamic>>();
+                                    schedules = value;
                                   });
                                 },
                               ),
@@ -806,12 +809,10 @@ class _RightModalState extends State<RightModal> {
                                     'contactEmail': emailController.text,
                                     'contactNumber':
                                         contactNumberController.text,
-                                    'image': _selectedPhotos,
+                                    'images': _selectedPhotos,
                                     'selectedPin': widget.selectedPin,
                                     'Visibility': isVisible,
                                   };
-
-                                  // Pass the map data to onSelectPin
                                   widget.onSelectPin(formData);
                                 },
                                 child: const Text('Select Pin on Map'),
