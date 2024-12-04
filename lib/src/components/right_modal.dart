@@ -165,32 +165,32 @@ class _RightModalState extends State<RightModal> {
       setState(() {
         _selectedPhotos.addAll(input.files!);
         // Create preview URLs for the selected images
-          for (var file in input.files!) {
-            final reader = html.FileReader();
-            reader.readAsArrayBuffer(file);
-            reader.onLoad.listen((e) {
-                final Uint8List originalBytes = reader.result as Uint8List;
-                final img.Image? originalImage = img.decodeImage(originalBytes);
+        for (var file in input.files!) {
+          final reader = html.FileReader();
+          reader.readAsArrayBuffer(file);
+          reader.onLoad.listen((e) {
+            final Uint8List originalBytes = reader.result as Uint8List;
+            final img.Image? originalImage = img.decodeImage(originalBytes);
 
-              if (originalImage != null) {
-                // Resize the image (to 100px width, maintaining aspect ratio)
-                final img.Image resizedImage =
-                    img.copyResize(originalImage, width: 100);
+            if (originalImage != null) {
+              // Resize the image (to 100px width, maintaining aspect ratio)
+              final img.Image resizedImage =
+                  img.copyResize(originalImage, width: 100);
 
-                // Compress the resized image (to JPEG format)
-                final Uint8List previewBytes =
-                    Uint8List.fromList(img.encodeJpg(resizedImage, quality: 50));
+              // Compress the resized image (to JPEG format)
+              final Uint8List previewBytes =
+                  Uint8List.fromList(img.encodeJpg(resizedImage, quality: 50));
 
-                // Create a Blob from the compressed image bytes
-                final previewBlob = html.Blob([previewBytes]);
-                final previewUrl = html.Url.createObjectUrl(previewBlob);
+              // Create a Blob from the compressed image bytes
+              final previewBlob = html.Blob([previewBytes]);
+              final previewUrl = html.Url.createObjectUrl(previewBlob);
 
-                setState(() {
-                  _photoPreviewUrls.add(previewUrl);
-                });
-              }  
-            });
-          }
+              setState(() {
+                _photoPreviewUrls.add(previewUrl);
+              });
+            }
+          });
+        }
       });
     }
   }
@@ -221,7 +221,7 @@ class _RightModalState extends State<RightModal> {
         if (facilityId == null) throw Exception('No facility ID found.');
 
         await FirebaseFirestore.instance
-            .collection('facilities')
+            .collection('facilitiesTwo')
             .doc(facilityId)
             .update({
           'name': facilityNameController.text,
@@ -251,7 +251,7 @@ class _RightModalState extends State<RightModal> {
         );
       } else {
         print('Adding new facility...');
-        await FirebaseFirestore.instance.collection('facilities').add({
+        await FirebaseFirestore.instance.collection('facilitiesTwo').add({
           'name': facilityNameController.text,
           'description': descriptionController.text,
           'category': selectedCategory,
@@ -304,28 +304,39 @@ class _RightModalState extends State<RightModal> {
     if (widget.isEditing['isEditing'] == true) {
       // If isEditing is available, populate the form fields
       setState(() {
-        facilityNameController.text = widget.isEditing['data']['name']; // string
-        descriptionController.text = widget.isEditing['data']['description']; // string
-        schedules = (widget.isEditing['data']['openHours'] as List<dynamic>)
-            .map((item) => item as Map<String, dynamic>)
-            .toList(); // list
-        selectedCategory = widget.isEditing['data']['category']; // string (dropdown)
-        selectedBuilding = widget.isEditing['data']['building']; // string (dropdown)
+        facilityNameController.text =
+            widget.isEditing['data']['name']; // string
+        descriptionController.text =
+            widget.isEditing['data']['description']; // string
+        schedules = (widget.isEditing['data']['openHours'] as List<dynamic>?)
+                ?.map((item) => item as Map<String, dynamic>)
+                .toList() ??
+            []; // list
+
+        selectedCategory =
+            widget.isEditing['data']['category']; // string (dropdown)
+        selectedBuilding =
+            widget.isEditing['data']['building']; // string (dropdown)
         emailController.text = widget.isEditing['data']['email']; // string
-        contactNumberController.text = widget.isEditing['data']['number']; // string
+        contactNumberController.text =
+            widget.isEditing['data']['number']; // string
+        // _selectedPhotos = widget.isEditing['data']['images']; // image
         isVisible = widget.isEditing['data']['Visibility'] ?? true;
       });
     } else {
       // If temptData is available, populate the form fields
       if (widget.temptData != null) {
         setState(() {
-          facilityNameController.text = widget.temptData?['facilityName']; // string
-          descriptionController.text =  widget.temptData?['description']; // string
+          facilityNameController.text =
+              widget.temptData?['facilityName']; // string
+          descriptionController.text =
+              widget.temptData?['description']; // string
           schedules = widget.temptData?['openHours']; // list
           selectedCategory = widget.temptData?['category']; // string (dropdown)
           selectedBuilding = widget.temptData?['building']; // string (dropdown)
           emailController.text = widget.temptData?['contactNumber']; // string
-          contactNumberController.text =  widget.temptData?['contactNumber']; // string
+          contactNumberController.text =
+              widget.temptData?['contactNumber']; // string
           _selectedPhotos = widget.temptData?['images']; // image
           isVisible = widget.temptData?['Visibility'] ?? true;
 
@@ -342,8 +353,8 @@ class _RightModalState extends State<RightModal> {
                     img.copyResize(originalImage, width: 100);
 
                 // Compress the resized image (to JPEG format)
-                final Uint8List previewBytes =
-                    Uint8List.fromList(img.encodeJpg(resizedImage, quality: 50));
+                final Uint8List previewBytes = Uint8List.fromList(
+                    img.encodeJpg(resizedImage, quality: 50));
 
                 // Create a Blob from the compressed image bytes
                 final previewBlob = html.Blob([previewBytes]);
@@ -355,7 +366,6 @@ class _RightModalState extends State<RightModal> {
               }
             });
           }
-
         });
       }
     }
