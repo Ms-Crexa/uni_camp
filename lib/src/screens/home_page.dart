@@ -61,7 +61,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   void subscribeToMarkerData() {
-    FirebaseFirestore.instance.collection('facilitiesTwo').snapshots().listen(
+    FirebaseFirestore.instance.collection('facilities').snapshots().listen(
       (querySnapshot) {
         final List<Map<String, dynamic>> fetchedData =
             querySnapshot.docs.map((doc) {

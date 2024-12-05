@@ -3,10 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:toastification/toastification.dart';
+import 'package:uni_camp/src/components/format_hours.dart';
 import 'package:uni_camp/src/ui/information_row.dart';
 import 'package:intl/intl.dart';
 import 'package:uni_camp/src/ui/facility_container.dart';
-import 'package:uni_camp/src/ui/open_hours.dart';
 import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -217,21 +217,17 @@ class _FacilityModal extends State<FacilityModal> {
                   content: widget.selectedPin?["category"] ?? 'No category',
                 ),
                 const SizedBox(height: 20),
-
-                (widget.selectedPin?['openHours'] is List &&
-                        (widget.selectedPin?['openHours'] as List).every(
-                          (item) => item is Map<String, dynamic>,
-                        )
-                    ? OpenHours(
-                        openHours: (widget.selectedPin?['openHours'] as List<dynamic>)
-                            .map((item) => item as Map<String, dynamic>)
-                            .toList(),
+                (widget.selectedPin?['openHours'] is List ||
+                        widget.selectedPin?['openHours'] is Map<String, dynamic>
+                    ? InformationRow(
+                        icon: FontAwesomeIcons.clock,
+                        content:
+                            formatOpenHours(widget.selectedPin?['openHours']),
                       )
                     : const InformationRow(
                         icon: FontAwesomeIcons.clock,
                         content: 'No hours available',
                       )),
-
                 const SizedBox(height: 20),
                 InformationRow(
                   icon: FontAwesomeIcons.building,

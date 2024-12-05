@@ -37,9 +37,9 @@ class _RightModalState extends State<RightModal> {
   final _formKey = GlobalKey<FormState>();
   bool isLoading = false;
   bool isVisible = true;
+  final bool _isUploading = false;
 
   List<html.File> _selectedPhotos = [];
-  final bool _isUploading = false;
   final List<String> _photoPreviewUrls = [];
   final TextEditingController facilityNameController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
@@ -221,7 +221,7 @@ class _RightModalState extends State<RightModal> {
         if (facilityId == null) throw Exception('No facility ID found.');
 
         await FirebaseFirestore.instance
-            .collection('facilitiesTwo')
+            .collection('facilities')
             .doc(facilityId)
             .update({
           'name': facilityNameController.text,
@@ -251,7 +251,7 @@ class _RightModalState extends State<RightModal> {
         );
       } else {
         print('Adding new facility...');
-        await FirebaseFirestore.instance.collection('facilitiesTwo').add({
+        await FirebaseFirestore.instance.collection('facilities').add({
           'name': facilityNameController.text,
           'description': descriptionController.text,
           'category': selectedCategory,
@@ -334,7 +334,7 @@ class _RightModalState extends State<RightModal> {
           schedules = widget.temptData?['openHours']; // list
           selectedCategory = widget.temptData?['category']; // string (dropdown)
           selectedBuilding = widget.temptData?['building']; // string (dropdown)
-          emailController.text = widget.temptData?['contactNumber']; // string
+          emailController.text = widget.temptData?['contactEmail']; // string
           contactNumberController.text =
               widget.temptData?['contactNumber']; // string
           _selectedPhotos = widget.temptData?['images']; // image
