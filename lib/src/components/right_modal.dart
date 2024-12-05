@@ -37,7 +37,8 @@ class _RightModalState extends State<RightModal> {
   final _formKey = GlobalKey<FormState>();
   bool isLoading = false;
   bool isVisible = true;
-  final bool _isUploading = false;
+  bool isUploadingImages = false;
+  String statusMessage = "";
 
   List<html.File> _selectedPhotos = [];
   final List<String> _photoPreviewUrls = [];
@@ -92,6 +93,10 @@ class _RightModalState extends State<RightModal> {
 
   Future<List<String>> _uploadPhotos() async {
     List<String> photoUrls = [];
+
+    setState(() {
+      statusMessage = "Uploading photos...";
+    });
 
     for (html.File photo in _selectedPhotos) {
       String fileName =
@@ -208,8 +213,16 @@ class _RightModalState extends State<RightModal> {
 
     try {
       if (_selectedPhotos.isNotEmpty) {
+        setState(() {
+          isUploadingImages = true;
+        });
+
         print('Starting image upload...');
         uploadedImageUrls = await _uploadPhotos();
+
+        setState(() {
+          isUploadingImages = false;
+        });
       } else {
         print('No image bytes available for upload.');
       }
@@ -320,7 +333,7 @@ class _RightModalState extends State<RightModal> {
         emailController.text = widget.isEditing['data']['email']; // string
         contactNumberController.text =
             widget.isEditing['data']['number']; // string
-        // _selectedPhotos = widget.isEditing['data']['images']; // image
+        // _selectedPhotos = widget.isEditing['data']['images'].length; // image
         isVisible = widget.isEditing['data']['Visibility'] ?? true;
       });
     } else {
@@ -699,9 +712,20 @@ class _RightModalState extends State<RightModal> {
                               ),
                               const SizedBox(height: 10),
                               TextButton(
-                                onPressed: _isUploading ? null : _pickImages,
+                                onPressed: _pickImages,
                                 child: const Text('Upload Image'),
                               ),
+                              const SizedBox(height: 10),
+
+                              if (isUploadingImages)
+                                const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Uploading images, please wait...',
+                                    style: TextStyle(
+                                        fontSize: 16, color: Colors.orange),
+                                  ),
+                                ),
                               // Display all the images in a carousel
                               if (_selectedPhotos.isNotEmpty)
                                 Column(
@@ -723,8 +747,8 @@ class _RightModalState extends State<RightModal> {
                                       return Stack(
                                         children: [
                                           Padding(
-                                            padding: const EdgeInsets.only(
-                                                right: 10),
+                                            padding:
+                                                const EdgeInsets.only(right: 3),
                                             child: GestureDetector(
                                               onTap: () {
                                                 // Preview the image when clicked
@@ -763,36 +787,12 @@ class _RightModalState extends State<RightModal> {
                                             right: 0,
                                             top: 0,
                                             child: GestureDetector(
-                                              onTap: () async {
-                                                try {
-                                                  await FirebaseStorage.instance
-                                                      .refFromURL(imageUrl)
-                                                      .delete();
-
-                                                  // Update the local state to remove the deleted image
-                                                  setState(() {
-                                                    widget.isEditing['data']
-                                                            ['images']
-                                                        .removeAt(index);
-                                                  });
-                                                  // Show a snackbar for successful deletion
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    const SnackBar(
-                                                      content: Text(
-                                                          'Image deleted successfully'),
-                                                    ),
-                                                  );
-                                                } catch (e) {
-                                                  // Show a snackbar if deletion fails
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                          'Failed to delete image: $e'),
-                                                    ),
-                                                  );
-                                                }
+                                              onTap: () {
+                                                setState(() {
+                                                  widget.isEditing['data']
+                                                          ['images']
+                                                      .removeAt(index);
+                                                });
                                               },
                                               child: const Icon(
                                                 Icons.close,
@@ -808,6 +808,7 @@ class _RightModalState extends State<RightModal> {
                                 ),
 
                               const SizedBox(height: 10),
+
                               TextButton(
                                 onPressed: () {
                                   Map<String, dynamic> formData = {
