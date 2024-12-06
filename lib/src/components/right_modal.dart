@@ -593,16 +593,23 @@ class _RightModalState extends State<RightModal> {
                                 ],
                               ),
                               const SizedBox(height: 20),
-                              //add validation
+
+                              //email
                               TextFormField(
                                 controller: emailController,
                                 decoration: const InputDecoration(
-                                    hintText: 'Email',
-                                    isDense: true,
-                                    border: OutlineInputBorder()),
+                                  hintText: 'Email',
+                                  isDense: true,
+                                  border: OutlineInputBorder(),
+                                ),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
                                     return 'Please enter the email';
+                                  }
+                                  final emailRegex =
+                                      RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+                                  if (!emailRegex.hasMatch(value)) {
+                                    return 'Please enter a valid email address';
                                   }
                                   return null;
                                 },
@@ -943,8 +950,8 @@ class _RightModalState extends State<RightModal> {
                                           padding: const EdgeInsets.all(8.0),
                                           child: isLoading
                                               ? const SizedBox(
-                                                  width: 20, // Explicit width
-                                                  height: 20, // Explicit height
+                                                  width: 20,
+                                                  height: 20,
                                                   child:
                                                       CircularProgressIndicator(
                                                     valueColor:
