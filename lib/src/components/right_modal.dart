@@ -22,8 +22,7 @@ class RightModal extends StatefulWidget {
       required this.onSelectPin,
       required this.temptData,
       required this.isEditing,
-      required this.updateSeletecPin
-    });
+      required this.updateSeletecPin});
 
   final Function() onCancel;
   final LatLng selectedPin;
@@ -187,7 +186,7 @@ class _RightModalState extends State<RightModal> {
 
               // Compress the resized image (to JPEG format)
               final Uint8List previewBytes =
-                  Uint8List.fromList(img.encodeJpg(resizedImage, quality: 50));
+                  Uint8List.fromList(img.encodeJpg(resizedImage, quality: 100));
 
               // Create a Blob from the compressed image bytes
               final previewBlob = html.Blob([previewBytes]);
@@ -378,7 +377,7 @@ class _RightModalState extends State<RightModal> {
 
                 // Compress the resized image (to JPEG format)
                 final Uint8List previewBytes = Uint8List.fromList(
-                    img.encodeJpg(resizedImage, quality: 50));
+                    img.encodeJpg(resizedImage, quality: 100));
 
                 // Create a Blob from the compressed image bytes
                 final previewBlob = html.Blob([previewBytes]);
@@ -406,11 +405,33 @@ class _RightModalState extends State<RightModal> {
               padding: const EdgeInsets.all(8.0),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8.0),
-                child: Image.network(
-                _photoPreviewUrls[index],
-                width: 100,
-                height: 100,
-                fit: BoxFit.cover,
+                child: GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (_) => Dialog(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Image.network(
+                              _photoPreviewUrls[index],
+                              fit: BoxFit.cover,
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Close'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  child: Image.network(
+                    _photoPreviewUrls[index],
+                    width: 100,
+                    height: 100,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
             ),
@@ -748,7 +769,9 @@ class _RightModalState extends State<RightModal> {
                                 Wrap(
                                   spacing: 8.0,
                                   runSpacing: 8.0,
-                                  children: List.generate(widget.isEditing['data']['images'].length, (index) {
+                                  children: List.generate(
+                                      widget.isEditing['data']['images'].length,
+                                      (index) {
                                     return Stack(
                                       clipBehavior: Clip.none,
                                       children: [
@@ -758,15 +781,20 @@ class _RightModalState extends State<RightModal> {
                                               context: context,
                                               builder: (_) => Dialog(
                                                 child: Column(
-                                                  mainAxisSize: MainAxisSize.min,
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
                                                   children: [
                                                     Image.network(
-                                                      widget.isEditing['data']['images'][index],
+                                                      widget.isEditing['data']
+                                                          ['images'][index],
                                                       fit: BoxFit.cover,
                                                     ),
                                                     TextButton(
-                                                      onPressed: () => Navigator.pop(context),
-                                                      child: const Text('Close'),
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                              context),
+                                                      child:
+                                                          const Text('Close'),
                                                     ),
                                                   ],
                                                 ),
@@ -776,9 +804,11 @@ class _RightModalState extends State<RightModal> {
                                           child: Padding(
                                             padding: const EdgeInsets.all(8.0),
                                             child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(8.0),
+                                              borderRadius:
+                                                  BorderRadius.circular(8.0),
                                               child: Image.network(
-                                                widget.isEditing['data']['images'][index],
+                                                widget.isEditing['data']
+                                                    ['images'][index],
                                                 width: 100,
                                                 height: 100,
                                                 fit: BoxFit.cover,
@@ -792,7 +822,9 @@ class _RightModalState extends State<RightModal> {
                                           child: GestureDetector(
                                             onTap: () {
                                               setState(() {
-                                                widget.isEditing['data']['images'].removeAt(index);
+                                                widget.isEditing['data']
+                                                        ['images']
+                                                    .removeAt(index);
                                               });
                                             },
                                             child: const Icon(
@@ -913,8 +945,12 @@ class _RightModalState extends State<RightModal> {
                                               ? const SizedBox(
                                                   width: 20, // Explicit width
                                                   height: 20, // Explicit height
-                                                  child: CircularProgressIndicator(
-                                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                    valueColor:
+                                                        AlwaysStoppedAnimation<
+                                                                Color>(
+                                                            Colors.white),
                                                     strokeWidth: 3.0,
                                                   ),
                                                 )

@@ -6,8 +6,7 @@ class LeftModal extends StatefulWidget {
       required this.facilities,
       required this.setFacility,
       required this.searchQuery,
-      this.searchController
-      });
+      this.searchController});
 
   final List<Map<String, dynamic>> facilities;
   final Function setFacility;
@@ -126,7 +125,7 @@ class FacilityCard extends StatelessWidget {
             width: 100,
             height: 100,
             child: Image.network(
-              (facility['images'] != null && facility['images'].isNotEmpty) 
+              (facility['images'] != null && facility['images'].isNotEmpty)
                   ? facility['images'][0]
                   : 'https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL',
               fit: BoxFit.cover,
@@ -142,7 +141,7 @@ class FacilityCard extends StatelessWidget {
                   ),
                 );
               },
-            ), 
+            ),
           ),
 
           // Text content section
@@ -164,6 +163,7 @@ class FacilityCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     facility['description'] ?? 'No description available',
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 12, color: Colors.black),
                   ),
                 ],
