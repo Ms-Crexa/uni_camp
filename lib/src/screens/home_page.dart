@@ -125,6 +125,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   void _onMarkerTap(Map<String, dynamic> pinData, data) {
     setState(() {
       selectedPin = pinData;
+      newLocation = false;
+      isEditing = {'isEditing': false, 'data': {}};
+      selectedCoordinates = const LatLng(0, 0);
     });
 
     print("Selected Pin ID: ${pinData['id']}");
@@ -345,6 +348,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             ),
             if (newLocation)
               RightModal(
+                updateSeletecPin: () => setState(() {
+                  selectedPin = null;
+                }),
                 isEditing: isEditing,
                 onCancel: () => setState(() {
                   temptData = null;

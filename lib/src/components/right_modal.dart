@@ -21,13 +21,16 @@ class RightModal extends StatefulWidget {
       required this.selectedPin,
       required this.onSelectPin,
       required this.temptData,
-      required this.isEditing});
+      required this.isEditing,
+      required this.updateSeletecPin
+    });
 
   final Function() onCancel;
   final LatLng selectedPin;
   final Function(Map<String, dynamic>) onSelectPin;
   final Map<String, dynamic>? temptData;
   final Map<String, dynamic> isEditing;
+  final Function() updateSeletecPin;
 
   @override
   State<RightModal> createState() => _RightModalState();
@@ -249,7 +252,14 @@ class _RightModalState extends State<RightModal> {
               widget.selectedPin.latitude, widget.selectedPin.longitude),
           'edited_by': userName,
           'updated_at': DateTime.now(),
-          'images': uploadedImageUrls,
+          if (uploadedImageUrls.isNotEmpty) ...{
+            'images': uploadedImageUrls +
+                (widget.isEditing['data']['images'] as List<dynamic>)
+                    .map((item) => item.toString())
+                    .toList(),
+          } else ...{
+            'images': widget.isEditing['data']['images'],
+          },
           'Visibility': isVisible,
           'openHours': schedules,
         });
@@ -293,6 +303,7 @@ class _RightModalState extends State<RightModal> {
         );
       }
       widget.onCancel();
+      widget.updateSeletecPin();
     } catch (e) {
       toastification.show(
         context: context,
@@ -393,11 +404,14 @@ class _RightModalState extends State<RightModal> {
           children: [
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Image.network(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8.0),
+                child: Image.network(
                 _photoPreviewUrls[index],
                 width: 100,
                 height: 100,
                 fit: BoxFit.cover,
+                ),
               ),
             ),
             Positioned(
@@ -728,83 +742,69 @@ class _RightModalState extends State<RightModal> {
                                 ),
                               // Display all the images in a carousel
                               if (_selectedPhotos.isNotEmpty)
-                                Column(
-                                  children: [
-                                    SizedBox(child: _buildPhotoPreview()),
-                                  ],
-                                ),
+                                SizedBox(child: _buildPhotoPreview()),
 
                               if (widget.isEditing['isEditing'])
-                                SizedBox(
-                                  height: 100,
-                                  child: ListView.builder(
-                                    scrollDirection: Axis.horizontal,
-                                    itemCount: widget
-                                        .isEditing['data']['images'].length,
-                                    itemBuilder: (context, index) {
-                                      final imageUrl = widget.isEditing['data']
-                                          ['images'][index];
-                                      return Stack(
-                                        children: [
-                                          Padding(
-                                            padding:
-                                                const EdgeInsets.only(right: 3),
-                                            child: GestureDetector(
-                                              onTap: () {
-                                                // Preview the image when clicked
-                                                showDialog(
-                                                  context: context,
-                                                  builder: (_) => Dialog(
-                                                    child: Column(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: [
-                                                        Image.network(
-                                                          imageUrl,
-                                                          fit: BoxFit.cover,
-                                                        ),
-                                                        TextButton(
-                                                          onPressed: () =>
-                                                              Navigator.pop(
-                                                                  context),
-                                                          child: const Text(
-                                                              'Close'),
-                                                        ),
-                                                      ],
+                                Wrap(
+                                  spacing: 8.0,
+                                  runSpacing: 8.0,
+                                  children: List.generate(widget.isEditing['data']['images'].length, (index) {
+                                    return Stack(
+                                      clipBehavior: Clip.none,
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () {
+                                            showDialog(
+                                              context: context,
+                                              builder: (_) => Dialog(
+                                                child: Column(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Image.network(
+                                                      widget.isEditing['data']['images'][index],
+                                                      fit: BoxFit.cover,
                                                     ),
-                                                  ),
-                                                );
-                                              },
+                                                    TextButton(
+                                                      onPressed: () => Navigator.pop(context),
+                                                      child: const Text('Close'),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadius.circular(8.0),
                                               child: Image.network(
-                                                imageUrl,
+                                                widget.isEditing['data']['images'][index],
                                                 width: 100,
                                                 height: 100,
                                                 fit: BoxFit.cover,
                                               ),
                                             ),
                                           ),
-                                          Positioned(
-                                            right: 0,
-                                            top: 0,
-                                            child: GestureDetector(
-                                              onTap: () {
-                                                setState(() {
-                                                  widget.isEditing['data']
-                                                          ['images']
-                                                      .removeAt(index);
-                                                });
-                                              },
-                                              child: const Icon(
-                                                Icons.close,
-                                                color: Colors.red,
-                                                size: 24,
-                                              ),
+                                        ),
+                                        Positioned(
+                                          right: 12,
+                                          top: 12,
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                widget.isEditing['data']['images'].removeAt(index);
+                                              });
+                                            },
+                                            child: const Icon(
+                                              Icons.close,
+                                              color: Colors.red,
+                                              size: 24,
                                             ),
                                           ),
-                                        ],
-                                      );
-                                    },
-                                  ),
+                                        ),
+                                      ],
+                                    );
+                                  }),
                                 ),
 
                               const SizedBox(height: 10),
@@ -910,11 +910,13 @@ class _RightModalState extends State<RightModal> {
                                         child: Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: isLoading
-                                              ? const CircularProgressIndicator(
-                                                  valueColor:
-                                                      AlwaysStoppedAnimation<
-                                                          Color>(Colors.white),
-                                                  strokeWidth: 3.0,
+                                              ? const SizedBox(
+                                                  width: 20, // Explicit width
+                                                  height: 20, // Explicit height
+                                                  child: CircularProgressIndicator(
+                                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                                    strokeWidth: 3.0,
+                                                  ),
                                                 )
                                               : const Text(
                                                   'Submit',
