@@ -36,7 +36,7 @@
 ![image](https://github.com/user-attachments/assets/cede14b2-d497-4e54-99ea-438c3e59a410)
 
 - **When you want to add a facility** ➕
-  
+
 ![image](https://github.com/user-attachments/assets/017775ce-53b0-452e-bd75-8a8da5816fdb)
 *Click the **plus icon** on the bottom right to add a new facility.*
 
@@ -44,7 +44,7 @@
 
 ## Developers 👨‍💻👩‍💻
 
-### 🚀 Meet the Duo Behind Unicamp!
+### Meet the Duo Behind Unicamp!
 
 - **👨‍💻 Peter Casiano** - **Frontend Developer**  
 
@@ -53,7 +53,7 @@
 
 ---
 
-## Getting Started 🚀
+## Getting Started 
 
 This project is developed using Flutter. To set up the project locally, follow the steps below:
 
