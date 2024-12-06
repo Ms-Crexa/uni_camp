@@ -1,11 +1,16 @@
+// ignore_for_file: avoid_print, use_rethrow_when_possible, use_build_context_synchronously
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
+// import 'package:file_picker/file_picker.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:toastification/toastification.dart';
 import 'dart:typed_data';
+import 'package:image/image.dart' as img;
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:html' as html;
 
 import 'package:uni_camp/src/components/open_hours_form.dart';
 
@@ -16,13 +21,15 @@ class RightModal extends StatefulWidget {
       required this.selectedPin,
       required this.onSelectPin,
       required this.temptData,
-      required this.isEditing});
+      required this.isEditing,
+      required this.updateSeletecPin});
 
   final Function() onCancel;
   final LatLng selectedPin;
   final Function(Map<String, dynamic>) onSelectPin;
   final Map<String, dynamic>? temptData;
   final Map<String, dynamic> isEditing;
+  final Function() updateSeletecPin;
 
   @override
   State<RightModal> createState() => _RightModalState();
@@ -30,8 +37,13 @@ class RightModal extends StatefulWidget {
 
 class _RightModalState extends State<RightModal> {
   final _formKey = GlobalKey<FormState>();
+  bool isLoading = false;
+  bool isVisible = true;
+  bool isUploadingImages = false;
+  String statusMessage = "";
 
-  List<Uint8List?> imageBytes = [];
+  List<html.File> _selectedPhotos = [];
+  final List<String> _photoPreviewUrls = [];
   final TextEditingController facilityNameController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
@@ -81,12 +93,236 @@ class _RightModalState extends State<RightModal> {
     {'value': 'Martin Hall', 'label': 'Martin Hall'}
   ];
 
+  Future<List<String>> _uploadPhotos() async {
+    List<String> photoUrls = [];
+
+    setState(() {
+      statusMessage = "Uploading photos...";
+    });
+
+    for (html.File photo in _selectedPhotos) {
+      String fileName =
+          '${DateTime.now().millisecondsSinceEpoch}_${photo.name}';
+      Reference storageRef = FirebaseStorage.instance.ref().child(fileName);
+
+      try {
+        // Create a FileReader
+        final reader = html.FileReader();
+        reader.readAsArrayBuffer(photo);
+
+        // Wait for the reader to complete
+        await reader.onLoadEnd.first;
+
+        // Get the original image bytes
+        final Uint8List originalBytes = reader.result as Uint8List;
+
+        // Decode the image using the `image` package
+        final img.Image? originalImage = img.decodeImage(originalBytes);
+        if (originalImage == null) {
+          throw Exception("Failed to decode image");
+        }
+
+        // Resize and compress the image
+        final img.Image compressedImage = img.copyResize(
+          originalImage,
+          width: 1024, // Set a maximum width (adjust as needed)
+        );
+        final Uint8List compressedBytes =
+            Uint8List.fromList(img.encodeJpg(compressedImage, quality: 50));
+
+        // Create a Blob from the compressed bytes
+        final blob = html.Blob([compressedBytes]);
+
+        // Determine the Content-Type based on file extension (simplified example)
+        String contentType = 'image/jpeg'; // Default to JPEG after compression
+        if (photo.name.endsWith('.png')) {
+          contentType = 'image/png';
+        }
+
+        // Set the metadata with contentType
+        final metadata = SettableMetadata(
+          contentType: contentType,
+        );
+
+        // Upload the compressed file with metadata
+        await storageRef.putBlob(blob, metadata);
+
+        // Get the download URL
+        String downloadUrl = await storageRef.getDownloadURL();
+        photoUrls.add(downloadUrl);
+      } catch (e) {
+        print('Error uploading photo: $e');
+        throw e;
+      }
+    }
+
+    return photoUrls;
+  }
+
+  Future<void> _pickImages() async {
+    final html.FileUploadInputElement input = html.FileUploadInputElement()
+      ..accept = 'image/*'
+      ..multiple = true;
+
+    input.click();
+
+    await input.onChange.first;
+
+    if (input.files != null) {
+      setState(() {
+        _selectedPhotos.addAll(input.files!);
+        // Create preview URLs for the selected images
+        for (var file in input.files!) {
+          final reader = html.FileReader();
+          reader.readAsArrayBuffer(file);
+          reader.onLoad.listen((e) {
+            final Uint8List originalBytes = reader.result as Uint8List;
+            final img.Image? originalImage = img.decodeImage(originalBytes);
+
+            if (originalImage != null) {
+              // Resize the image (to 100px width, maintaining aspect ratio)
+              final img.Image resizedImage =
+                  img.copyResize(originalImage, width: 100);
+
+              // Compress the resized image (to JPEG format)
+              final Uint8List previewBytes =
+                  Uint8List.fromList(img.encodeJpg(resizedImage, quality: 100));
+
+              // Create a Blob from the compressed image bytes
+              final previewBlob = html.Blob([previewBytes]);
+              final previewUrl = html.Url.createObjectUrl(previewBlob);
+
+              setState(() {
+                _photoPreviewUrls.add(previewUrl);
+              });
+            }
+          });
+        }
+      });
+    }
+  }
+
+  Future<void> saveFacility() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    User? user = FirebaseAuth.instance.currentUser;
+    String? userName = user?.displayName ?? 'Unknown User';
+    List<String> uploadedImageUrls = [];
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      if (_selectedPhotos.isNotEmpty) {
+        setState(() {
+          isUploadingImages = true;
+        });
+
+        print('Starting image upload...');
+        uploadedImageUrls = await _uploadPhotos();
+
+        setState(() {
+          isUploadingImages = false;
+        });
+      } else {
+        print('No image bytes available for upload.');
+      }
+
+      // For editing an existing facility
+      if (widget.isEditing['isEditing']) {
+        print('Editing facility...');
+        String? facilityId = widget.isEditing['id']?['id'];
+        if (facilityId == null) throw Exception('No facility ID found.');
+
+        await FirebaseFirestore.instance
+            .collection('facilities')
+            .doc(facilityId)
+            .update({
+          'name': facilityNameController.text,
+          'description': descriptionController.text,
+          'category': selectedCategory,
+          'building': selectedBuilding,
+          'contact_details': {
+            'contact_email': emailController.text,
+            'contact_number': contactNumberController.text,
+          },
+          'position': GeoPoint(
+              widget.selectedPin.latitude, widget.selectedPin.longitude),
+          'edited_by': userName,
+          'updated_at': DateTime.now(),
+          if (uploadedImageUrls.isNotEmpty) ...{
+            'images': uploadedImageUrls +
+                (widget.isEditing['data']['images'] as List<dynamic>)
+                    .map((item) => item.toString())
+                    .toList(),
+          } else ...{
+            'images': widget.isEditing['data']['images'],
+          },
+          'Visibility': isVisible,
+          'openHours': schedules,
+        });
+
+        toastification.show(
+          context: context,
+          title: const Text('Facility successfully updated!'),
+          style: ToastificationStyle.flatColored,
+          type: ToastificationType.success,
+          alignment: Alignment.topCenter,
+          autoCloseDuration: const Duration(seconds: 3),
+        );
+      } else {
+        print('Adding new facility...');
+        await FirebaseFirestore.instance.collection('facilities').add({
+          'name': facilityNameController.text,
+          'description': descriptionController.text,
+          'category': selectedCategory,
+          'building': selectedBuilding,
+          'contact_details': {
+            'contact_email': emailController.text,
+            'contact_number': contactNumberController.text,
+          },
+          'position': GeoPoint(
+              widget.selectedPin.latitude, widget.selectedPin.longitude),
+          'added_by': userName,
+          'created_at': DateTime.now(),
+          'updated_at': DateTime.now(),
+          'images': uploadedImageUrls,
+          'Visibility': isVisible,
+          'openHours': schedules,
+        });
+
+        toastification.show(
+          context: context,
+          title: const Text('Facility successfully added!'),
+          style: ToastificationStyle.flatColored,
+          type: ToastificationType.success,
+          alignment: Alignment.topCenter,
+          autoCloseDuration: const Duration(seconds: 3),
+        );
+      }
+      widget.onCancel();
+      widget.updateSeletecPin();
+    } catch (e) {
+      toastification.show(
+        context: context,
+        title: const Text('Failed to save facility!'),
+        type: ToastificationType.error,
+        alignment: Alignment.topCenter,
+        autoCloseDuration: const Duration(seconds: 3),
+      );
+      print('Error: $e');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
   // if there is a temptData, set the values of the fields
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
-    print(widget.isEditing['data']['images']);
 
     if (widget.isEditing['isEditing'] == true) {
       // If isEditing is available, populate the form fields
@@ -95,17 +331,20 @@ class _RightModalState extends State<RightModal> {
             widget.isEditing['data']['name']; // string
         descriptionController.text =
             widget.isEditing['data']['description']; // string
-        // schedules = widget.isEditing['data']['openHours']; // list
+        schedules = (widget.isEditing['data']['openHours'] as List<dynamic>?)
+                ?.map((item) => item as Map<String, dynamic>)
+                .toList() ??
+            []; // list
+
         selectedCategory =
-            widget.isEditing['data']['category']; // string (drop dowm)
+            widget.isEditing['data']['category']; // string (dropdown)
         selectedBuilding =
-            widget.isEditing['data']['building']; // string (drop down)
+            widget.isEditing['data']['building']; // string (dropdown)
         emailController.text = widget.isEditing['data']['email']; // string
         contactNumberController.text =
             widget.isEditing['data']['number']; // string
-        // save the network image to the imageBytes
-
-        // imageBytes = widget.isEditing['data']['images']; // image
+        // _selectedPhotos = widget.isEditing['data']['images'].length; // image
+        isVisible = widget.isEditing['data']['Visibility'] ?? true;
       });
     } else {
       // If temptData is available, populate the form fields
@@ -116,17 +355,103 @@ class _RightModalState extends State<RightModal> {
           descriptionController.text =
               widget.temptData?['description']; // string
           schedules = widget.temptData?['openHours']; // list
-          selectedCategory =
-              widget.temptData?['category']; // string (drop dowm)
-          selectedBuilding =
-              widget.temptData?['building']; // string (drop down)
-          emailController.text = widget.temptData?['contactNumber']; // string
+          selectedCategory = widget.temptData?['category']; // string (dropdown)
+          selectedBuilding = widget.temptData?['building']; // string (dropdown)
+          emailController.text = widget.temptData?['contactEmail']; // string
           contactNumberController.text =
               widget.temptData?['contactNumber']; // string
-          imageBytes = widget.temptData?['image']; // image
+          _selectedPhotos = widget.temptData?['images']; // image
+          isVisible = widget.temptData?['Visibility'] ?? true;
+
+          for (var file in _selectedPhotos) {
+            final reader = html.FileReader();
+            reader.readAsArrayBuffer(file);
+            reader.onLoad.listen((e) {
+              final Uint8List originalBytes = reader.result as Uint8List;
+              final img.Image? originalImage = img.decodeImage(originalBytes);
+
+              if (originalImage != null) {
+                // Resize the image (to 100px width, maintaining aspect ratio)
+                final img.Image resizedImage =
+                    img.copyResize(originalImage, width: 100);
+
+                // Compress the resized image (to JPEG format)
+                final Uint8List previewBytes = Uint8List.fromList(
+                    img.encodeJpg(resizedImage, quality: 100));
+
+                // Create a Blob from the compressed image bytes
+                final previewBlob = html.Blob([previewBytes]);
+                final previewUrl = html.Url.createObjectUrl(previewBlob);
+
+                setState(() {
+                  _photoPreviewUrls.add(previewUrl);
+                });
+              }
+            });
+          }
         });
       }
     }
+  }
+
+  Widget _buildPhotoPreview() {
+    return Wrap(
+      spacing: 8.0,
+      runSpacing: 8.0,
+      children: List.generate(_photoPreviewUrls.length, (index) {
+        return Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8.0),
+                child: GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (_) => Dialog(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Image.network(
+                              _photoPreviewUrls[index],
+                              fit: BoxFit.cover,
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Close'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  child: Image.network(
+                    _photoPreviewUrls[index],
+                    width: 100,
+                    height: 100,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              right: 0,
+              top: 0,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.red),
+                onPressed: () {
+                  setState(() {
+                    _selectedPhotos.removeAt(index);
+                    _photoPreviewUrls.removeAt(index);
+                  });
+                },
+              ),
+            ),
+          ],
+        );
+      }),
+    );
   }
 
   @override
@@ -174,8 +499,11 @@ class _RightModalState extends State<RightModal> {
                             fontWeight: FontWeight.bold,
                           )),
                       const SizedBox(height: 5),
-                      const Text('Add a new facility to the map',
-                          style: TextStyle(
+                      Text(
+                          widget.isEditing['isEditing']
+                              ? 'Update facility to the map'
+                              : 'Add a new facility to the map',
+                          style: const TextStyle(
                             fontSize: 12,
                             color: Color.fromARGB(255, 109, 109, 109),
                             fontWeight: FontWeight.w100,
@@ -265,16 +593,23 @@ class _RightModalState extends State<RightModal> {
                                 ],
                               ),
                               const SizedBox(height: 20),
-                              //add validation
+
+                              //email
                               TextFormField(
                                 controller: emailController,
                                 decoration: const InputDecoration(
-                                    hintText: 'Email',
-                                    isDense: true,
-                                    border: OutlineInputBorder()),
+                                  hintText: 'Email',
+                                  isDense: true,
+                                  border: OutlineInputBorder(),
+                                ),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
                                     return 'Please enter the email';
+                                  }
+                                  final emailRegex =
+                                      RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+                                  if (!emailRegex.hasMatch(value)) {
+                                    return 'Please enter a valid email address';
                                   }
                                   return null;
                                 },
@@ -419,79 +754,100 @@ class _RightModalState extends State<RightModal> {
                               ),
                               const SizedBox(height: 10),
                               TextButton(
-                                onPressed: () async {
-                                  var picked =
-                                      await FilePicker.platform.pickFiles(
-                                    type: FileType.custom,
-                                    allowMultiple: true,
-                                    allowedExtensions: ['jpg', 'png', 'jpeg'],
-                                  );
-                                  if (picked != null) {
-                                    setState(() {
-                                      imageBytes = picked.files
-                                          .map((file) => file.bytes)
-                                          .toList();
-                                    });
-                                    toastification.show(
-                                      // ignore: use_build_context_synchronously
-                                      context: context,
-                                      title: const Text(
-                                          'Image successfully uploaded!'),
-                                      style: ToastificationStyle.flatColored,
-                                      type: ToastificationType.success,
-                                      alignment: Alignment.topCenter,
-                                      autoCloseDuration:
-                                          const Duration(seconds: 3),
-                                    );
-                                  }
-                                },
+                                onPressed: _pickImages,
                                 child: const Text('Upload Image'),
                               ),
-                              // Display all the images in a carousel
-                              if (imageBytes.isEmpty &&
-                                  widget.isEditing['isEditing'])
-                                SizedBox(
-                                  height: 100,
-                                  child: ListView.builder(
-                                    scrollDirection: Axis.horizontal,
-                                    itemCount: widget
-                                        .isEditing['data']['images'].length,
-                                    itemBuilder: (context, index) {
-                                      return Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 10),
-                                        child: Image.network(
-                                          widget.isEditing['data']['images']
-                                              [index],
-                                          width: 100,
-                                          height: 100,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                              if (imageBytes.isNotEmpty)
-                                SizedBox(
-                                  height: 100,
-                                  child: ListView.builder(
-                                    scrollDirection: Axis.horizontal,
-                                    itemCount: imageBytes.length,
-                                    itemBuilder: (context, index) {
-                                      return Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 10),
-                                        child: Image.memory(
-                                          imageBytes[index]!,
-                                          width: 100,
-                                          height: 100,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
                               const SizedBox(height: 10),
+
+                              if (isUploadingImages)
+                                const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Uploading images, please wait...',
+                                    style: TextStyle(
+                                        fontSize: 16, color: Colors.orange),
+                                  ),
+                                ),
+                              // Display all the images in a carousel
+                              if (_selectedPhotos.isNotEmpty)
+                                SizedBox(child: _buildPhotoPreview()),
+
+                              if (widget.isEditing['isEditing'])
+                                Wrap(
+                                  spacing: 8.0,
+                                  runSpacing: 8.0,
+                                  children: List.generate(
+                                      widget.isEditing['data']['images'].length,
+                                      (index) {
+                                    return Stack(
+                                      clipBehavior: Clip.none,
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () {
+                                            showDialog(
+                                              context: context,
+                                              builder: (_) => Dialog(
+                                                child: Column(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Image.network(
+                                                      widget.isEditing['data']
+                                                          ['images'][index],
+                                                      fit: BoxFit.cover,
+                                                    ),
+                                                    TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                              context),
+                                                      child:
+                                                          const Text('Close'),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(8.0),
+                                              child: Image.network(
+                                                widget.isEditing['data']
+                                                    ['images'][index],
+                                                width: 100,
+                                                height: 100,
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Positioned(
+                                          right: 12,
+                                          top: 12,
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                widget.isEditing['data']
+                                                        ['images']
+                                                    .removeAt(index);
+                                              });
+                                            },
+                                            child: const Icon(
+                                              Icons.close,
+                                              color: Colors.red,
+                                              size: 24,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  }),
+                                ),
+
+                              const SizedBox(height: 10),
+
                               TextButton(
                                 onPressed: () {
                                   Map<String, dynamic> formData = {
@@ -503,11 +859,10 @@ class _RightModalState extends State<RightModal> {
                                     'contactEmail': emailController.text,
                                     'contactNumber':
                                         contactNumberController.text,
-                                    'image': imageBytes,
+                                    'images': _selectedPhotos,
                                     'selectedPin': widget.selectedPin,
+                                    'Visibility': isVisible,
                                   };
-
-                                  // Pass the map data to onSelectPin
                                   widget.onSelectPin(formData);
                                 },
                                 child: const Text('Select Pin on Map'),
@@ -518,6 +873,24 @@ class _RightModalState extends State<RightModal> {
                                     'Selected pin: ${widget.selectedPin.latitude}, ${widget.selectedPin.longitude}'),
                               ),
                               const SizedBox(height: 20),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              Checkbox(
+                                value: isVisible,
+                                onChanged: (value) {
+                                  setState(() {
+                                    isVisible = value ?? true;
+                                  });
+                                },
+                                activeColor: Colors.black,
+                              ),
+                              const Text('Visible to others'),
                             ],
                           ),
                         ),
@@ -546,177 +919,58 @@ class _RightModalState extends State<RightModal> {
                                           ))),
                                   const SizedBox(width: 10),
                                   // store in firebase
-                                  TextButton(
-                                      style: ButtonStyle(
-                                        fixedSize: WidgetStateProperty.all(
-                                            const Size(100, 35)),
-                                        backgroundColor:
-                                            WidgetStateProperty.all(
-                                                const Color.fromARGB(
-                                                    255, 44, 97, 138)),
-                                      ),
-                                      onPressed: () async {
-                                        if (_formKey.currentState?.validate() ??
-                                            false) {
-                                          // Get current user
-                                          User? user =
-                                              FirebaseAuth.instance.currentUser;
-                                          String? userName =
-                                              user?.displayName ??
-                                                  'Unknown User';
+                                  Stack(
+                                    children: [
+                                      // If isLoading, show CircularProgressIndicator on top of the button
+                                      if (isLoading)
+                                        const Positioned(
+                                          top: 0,
+                                          left: 0,
+                                          right: 0,
+                                          child: Center(
+                                            child: CircularProgressIndicator(),
+                                          ),
+                                        ),
 
-                                          try {
-                                            if (widget.isEditing['isEditing']) {
-                                              print('Editing Facility');
-
-                                              // Ensure you have a valid document ID
-                                              String? facilityId =
-                                                  widget.isEditing['id']?['id'];
-
-                                              if (facilityId == null) {
-                                                print(
-                                                    'Error: No valid facility ID found for editing');
-                                                toastification.show(
-                                                  context: context,
-                                                  title: const Text(
-                                                      'Failed to Update Facility. ID missing!'),
-                                                  style: ToastificationStyle
-                                                      .flatColored,
-                                                  type:
-                                                      ToastificationType.error,
-                                                  alignment:
-                                                      Alignment.topCenter,
-                                                  autoCloseDuration:
-                                                      const Duration(
-                                                          seconds: 3),
-                                                );
-                                                return;
-                                              }
-
-                                              // Update the data in Firestore
-                                              await FirebaseFirestore.instance
-                                                  .collection('facilities')
-                                                  .doc(facilityId)
-                                                  .update({
-                                                'name':
-                                                    facilityNameController.text,
-                                                'description':
-                                                    descriptionController.text,
-                                                'openHours': schedules,
-                                                'category': selectedCategory,
-                                                'building': selectedBuilding,
-                                                'contact_details': {
-                                                  'contact_email':
-                                                      emailController.text,
-                                                  'contact_number':
-                                                      contactNumberController
-                                                          .text,
-                                                },
-                                                'position': GeoPoint(
-                                                    widget.selectedPin.latitude,
-                                                    widget
-                                                        .selectedPin.longitude),
-                                                'edited_by': userName,
-                                                'updated_at': DateTime.now(),
-                                              });
-
-                                              // Success Toast
-                                              toastification.show(
-                                                context: context,
-                                                title: const Text(
-                                                    'Facility Successfully Updated!'),
-                                                style: ToastificationStyle
-                                                    .flatColored,
-                                                type:
-                                                    ToastificationType.success,
-                                                alignment: Alignment.topCenter,
-                                                autoCloseDuration:
-                                                    const Duration(seconds: 3),
-                                              );
-                                            } else {
-                                              print('Adding Facility');
-
-                                              // Prepare the form data for a new facility
-                                              Map<String, dynamic> formData = {
-                                                'name':
-                                                    facilityNameController.text,
-                                                'description':
-                                                    descriptionController.text,
-                                                'openHours': schedules,
-                                                'category': selectedCategory,
-                                                'building': selectedBuilding,
-                                                'contact_details': {
-                                                  'contact_email':
-                                                      emailController.text,
-                                                  'contact_number':
-                                                      contactNumberController
-                                                          .text,
-                                                },
-                                                'position': {
-                                                  'latitude': widget
-                                                      .selectedPin.latitude,
-                                                  'longitude': widget
-                                                      .selectedPin.longitude,
-                                                },
-                                                'timestamp': FieldValue
-                                                    .serverTimestamp(),
-                                                'added_by': userName,
-                                                'created_at': DateTime.now(),
-                                                'updated_at': DateTime.now(),
-                                              };
-
-                                              if (imageBytes.isNotEmpty) {
-                                                formData['images'] = imageBytes;
-                                              }
-
-                                              // Save to Firestore
-                                              var docRef =
-                                                  await FirebaseFirestore
-                                                      .instance
-                                                      .collection('facilities')
-                                                      .add(formData);
-
-                                              print(
-                                                  'New Facility ID: ${docRef.id}');
-
-                                              // Success Toast
-                                              toastification.show(
-                                                context: context,
-                                                title: const Text(
-                                                    'Facility Successfully Added!'),
-                                                style: ToastificationStyle
-                                                    .flatColored,
-                                                type:
-                                                    ToastificationType.success,
-                                                alignment: Alignment.topCenter,
-                                                autoCloseDuration:
-                                                    const Duration(seconds: 3),
-                                              );
-                                            }
-
-                                            widget
-                                                .onCancel(); // Call onCancel after operation is successful
-                                          } catch (e) {
-                                            print("Error: $e");
-
-                                            toastification.show(
-                                              context: context,
-                                              title: const Text(
-                                                  'An error occurred!'),
-                                              style: ToastificationStyle
-                                                  .flatColored,
-                                              type: ToastificationType.error,
-                                              alignment: Alignment.topCenter,
-                                              autoCloseDuration:
-                                                  const Duration(seconds: 3),
-                                            );
-                                          }
-                                        }
-                                      },
-                                      child: const Text('Submit',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                          ))),
+                                      TextButton(
+                                        style: const ButtonStyle(
+                                          fixedSize: WidgetStatePropertyAll(
+                                              Size(100, 35)),
+                                          backgroundColor:
+                                              WidgetStatePropertyAll(
+                                            Color.fromARGB(255, 44, 97, 138),
+                                          ),
+                                        ),
+                                        onPressed: isLoading
+                                            ? null
+                                            : () async {
+                                                await saveFacility();
+                                              },
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: isLoading
+                                              ? const SizedBox(
+                                                  width: 20,
+                                                  height: 20,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                    valueColor:
+                                                        AlwaysStoppedAnimation<
+                                                                Color>(
+                                                            Colors.white),
+                                                    strokeWidth: 3.0,
+                                                  ),
+                                                )
+                                              : const Text(
+                                                  'Submit',
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                        ),
+                                      )
+                                    ],
+                                  ),
                                 ],
                               ),
                             ),

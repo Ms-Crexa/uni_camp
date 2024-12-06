@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -50,109 +52,87 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   // is editing
   Map<String, dynamic> isEditing = {'isEditing': false, 'data': {}};
   // Markers
-  List<Map<String, dynamic>> markerData = [
-    // {
-    //   "position": const LatLng(7.0715, 125.6125),
-    //   "added_by": "John Doe",
-    //   "building": "Main Building",
-    //   "category": "Classroom",
-    //   "description": "This is a classroom",
-    //   "name": "Room 101",
-    //   "email": "random@gmail.com",
-    //   "number": "09123456789",
-    //   "openHours": {
-    //     'Monday': '8:00 AM - 5:00 PM',
-    //     'Tuesday': '8:00 AM - 5:00 PM',
-    //     'Wednesday': '8:00 AM - 5:00 PM',
-    //     'Thursday': '8:00 AM - 5:00 PM',
-    //     'Friday': '8:00 AM - 5:00 PM',
-    //     'Saturday': '8:00 AM - 5:00 PM',
-    //     'Sunday': 'Closed',
-    //   },
-    //   "timestamp": Timestamp(1633056000, 0),
-    //   "created_at": Timestamp(1633056000, 0),
-    //   "updated_at": Timestamp(1633056000, 0),
-    //   "images": [
-    //     "https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL",
-    //     "https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL",
-    //     "https://ol-content-api.global.ssl.fastly.net/sites/default/files/styles/scale_and_crop_center_890x320/public/2023-01/addu-banner.jpg?itok=ZP3cNDCL",
-    //   ],
-    // },
-  ];
+  List<Map<String, dynamic>> markerData = [];
 
   @override
   void initState() {
     super.initState();
-    fetchMarkerData();
+    subscribeToMarkerData();
   }
 
-  Future<void> fetchMarkerData() async {
-    try {
-      final querySnapshot =
-          await FirebaseFirestore.instance.collection('facilities').get();
+  void subscribeToMarkerData() {
+    FirebaseFirestore.instance.collection('facilities').snapshots().listen(
+      (querySnapshot) {
+        final List<Map<String, dynamic>> fetchedData =
+            querySnapshot.docs.map((doc) {
+          final data = doc.data();
+          final id = doc.id;
 
-      final List<Map<String, dynamic>> fetchedData =
-          querySnapshot.docs.map((doc) {
-        final data = doc.data();
-        final id = doc.id;
+          final selectedPin = data['position'];
+          final contactDetails = data['contact_details'] ?? {};
 
-        final selectedPin = data['position'];
-        final contactDetails = data['contact_details'] ?? {};
+          final double latitude;
+          final double longitude;
 
-        final double latitude;
-        final double longitude;
+          if (selectedPin != null &&
+              selectedPin is Map<String, dynamic> &&
+              selectedPin['latitude'] != null &&
+              selectedPin['longitude'] != null) {
+            latitude = selectedPin['latitude'];
+            longitude = selectedPin['longitude'];
+          } else if (data['position'] != null && data['position'] is GeoPoint) {
+            final geoPoint = data['position'] as GeoPoint;
+            latitude = geoPoint.latitude;
+            longitude = geoPoint.longitude;
+          } else {
+            latitude = 0.0;
+            longitude = 0.0;
+          }
 
-        if (selectedPin != null &&
-            selectedPin is Map<String, dynamic> &&
-            selectedPin['latitude'] != null &&
-            selectedPin['longitude'] != null) {
-          latitude = selectedPin['latitude'];
-          longitude = selectedPin['longitude'];
-        } else if (data['position'] != null && data['position'] is GeoPoint) {
-          final geoPoint = data['position'] as GeoPoint;
-          latitude = geoPoint.latitude;
-          longitude = geoPoint.longitude;
-        } else {
-          latitude = 0.0;
-          longitude = 0.0;
-        }
+          final position = LatLng(latitude, longitude);
 
-        final position = LatLng(latitude, longitude);
+          return {
+            "id": id,
+            "position": position,
+            "added_by": data['added by'] ?? "Unknown",
+            "building": data['building'] ?? "Unknown",
+            "category": data['category'] ?? "Unknown",
+            "description": data['description'] ?? "No description available",
+            "name": data['name'] ?? 'Unknown',
+            "email": contactDetails['contact_email'] ?? "no contacts available",
+            "number":
+                contactDetails['contact_number'] ?? "no contacts available",
+            "openHours": data['openHours'] ?? "Not specified",
+            "images":
+                data['images'] != null ? data['images'] as List<dynamic> : [],
+            "timestamp": data['timestamp'] ?? "No timestamp available",
+            "created_at": data['created_at'] ?? "No created at available",
+            "updated_at": data['updated_at'] ?? "No updated at available",
+            "Visibility": data['Visibility'],
+          };
+        }).toList();
 
-        return {
-          "id": id,
-          "position": position,
-          "added_by": data['added by'] ?? "Unknown",
-          "building": data['building'] ?? "Unknown",
-          "category": data['category'] ?? "Unknown",
-          "description": data['description'] ?? "No description available",
-          "name": data['name'] ?? 'Unknown',
-          "email": contactDetails['contact_email'] ?? "no contacts available",
-          "number": contactDetails['contact_number'] ?? "no contacts available",
-          "openHours":
-              data['openHours'] ?? data['open_hours'] ?? "Not specified",
-          "images":
-              data['images'] != null ? data['images'] as List<dynamic> : [],
-          "timestamp": data['timestamp'] ?? "No timestamp available",
-          "created_at": data['created_at'] ?? "No created at available",
-          "updated_at": data['updated_at'] ?? "No updated at available",
-        };
-      }).toList();
-
-      setState(() {
-        markerData = fetchedData;
-      });
-    } catch (error) {
-      print("Error fetching marker data: $error");
-    }
+        setState(() {
+          markerData = fetchedData;
+        });
+      },
+      onError: (error) {
+        print("Error subscribing to marker data: $error");
+      },
+    );
   }
 
-  void _onMarkerTap(Map<String, dynamic> pinData) {
+  void _onMarkerTap(Map<String, dynamic> pinData, data) {
     setState(() {
       selectedPin = pinData;
+      newLocation = false;
+      isEditing = {'isEditing': false, 'data': {}};
+      selectedCoordinates = const LatLng(0, 0);
     });
 
     print("Selected Pin ID: ${pinData['id']}");
+    print(data['openHours']);
+    print(data['name']);
   }
 
   Future<void> signOut(BuildContext context) async {
@@ -250,7 +230,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                               width: 60,
                               height: 60,
                               child: GestureDetector(
-                                onTap: () => _onMarkerTap(data),
+                                onTap: () => _onMarkerTap(data, data),
                                 child: AnimatedScale(
                                   scale: isSelected ? 1.1 : 1.0,
                                   duration: const Duration(milliseconds: 200),
@@ -368,6 +348,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             ),
             if (newLocation)
               RightModal(
+                updateSeletecPin: () => setState(() {
+                  selectedPin = null;
+                }),
                 isEditing: isEditing,
                 onCancel: () => setState(() {
                   temptData = null;

@@ -46,7 +46,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '254518558778',
     projectId: 'unicamp-78ff6',
     authDomain: 'unicamp-78ff6.firebaseapp.com',
-    storageBucket: 'unicamp-78ff6.appspot.com',
+    storageBucket: 'unicamp-78ff6.firebasestorage.app',
     measurementId: 'G-RJPKK7423K',
   );
 

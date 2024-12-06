@@ -4,7 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 class OpenHours extends StatelessWidget {
   const OpenHours({super.key, required this.openHours});
 
-  final Map<String, dynamic> openHours;
+  final List<Map<String, dynamic>> openHours;
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +17,20 @@ class OpenHours extends StatelessWidget {
       'Friday',
       'Saturday'
     ];
+
+    // Create a map of day indices (0-6) to their schedules
+    final Map<int, Map<String, dynamic>> daySchedules = {};
+
+    for (var schedule in openHours) {
+      final days = (schedule['days'] as List<dynamic>)
+          .map((day) => day as bool)
+          .toList();
+      for (int i = 0; i < days.length; i++) {
+        if (days[i]) {
+          daySchedules[i] = schedule;
+        }
+      }
+    }
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -32,22 +46,23 @@ class OpenHours extends StatelessWidget {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                for (var day in daysOfWeek)
-                  if (openHours.containsKey(day.toLowerCase()))
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 1.5),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(day),
-                          Text(openHours[day.toLowerCase()] ?? ''),
-                        ],
-                      ),
+                for (int i = 0; i < daysOfWeek.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(daysOfWeek[i]), // Day name
+                        Text(daySchedules.containsKey(i)
+                            ? '${daySchedules[i]!['start']} - ${daySchedules[i]!['end'] ?? 'N/A'}'
+                            : 'Closed'), // Display "Closed" if no schedule
+                      ],
                     ),
+                  ),
               ],
             ),
           ),
-        )
+        ),
       ],
     );
   }
